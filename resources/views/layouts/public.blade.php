@@ -34,7 +34,7 @@
                                 <a href="{{ route('dashboard') }}" class="px-4 py-2 text-emerald-600 hover:text-emerald-700 font-medium">Dashboard</a>
                             @else
                                 <a href="{{ route('login') }}" class="px-4 py-2 text-emerald-600 hover:text-emerald-700 font-medium">Login</a>
-                                <a href="{{ route('register') }}" class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-medium">Sign Up</a>
+                                <a href="{{ route('signup.start') }}" class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-medium">Sign Up</a>
                             @endauth
                         </div>
                     </div>

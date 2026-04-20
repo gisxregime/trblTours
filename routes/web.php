@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\SignupController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GuideProfileController;
 use App\Http\Controllers\GuideSettingsController;
@@ -15,6 +16,22 @@ use App\Models\Tour;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
+
+Route::redirect('/signup.php', '/signup');
+
+Route::middleware('guest')->group(function () {
+    Route::get('/signup', [SignupController::class, 'create'])->name('signup.start');
+    Route::post('/signup/email', [SignupController::class, 'storeEmail'])->name('signup.email.store');
+    Route::get('/signup/{token}/otp', [SignupController::class, 'createOtp'])->name('signup.otp');
+    Route::post('/signup/{token}/otp', [SignupController::class, 'storeOtp'])->name('signup.otp.store');
+    Route::post('/signup/{token}/otp/resend', [SignupController::class, 'resendOtp'])
+        ->middleware('throttle:6,1')
+        ->name('signup.otp.resend');
+    Route::get('/signup/{token}/role', [SignupController::class, 'createRole'])->name('signup.role');
+    Route::post('/signup/{token}/role', [SignupController::class, 'storeRole'])->name('signup.role.store');
+    Route::get('/signup/{token}/details', [SignupController::class, 'createDetails'])->name('signup.details');
+    Route::post('/signup/{token}/details', [SignupController::class, 'storeDetails'])->name('signup.details.store');
+});
 
 Route::get('/', function (Request $request) {
     $regions = [

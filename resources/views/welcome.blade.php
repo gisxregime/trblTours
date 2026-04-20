@@ -1289,8 +1289,6 @@
 
             <nav class="header-nav" aria-label="Primary navigation">
                 <a href="#">Home</a>
-                <a href="#">Guides</a>
-                <a href="#tours">Explore</a>
                 <a href="#tourist-tips">Blogs</a>
                 <a href="#why-choose-us">About</a>
                 <select class="language-pill" aria-label="Language">
@@ -1305,7 +1303,7 @@
                 @else
                     <a class="btn btn-ghost" href="{{ route('login') }}">Log In</a>
                     @if (Route::has('register'))
-                        <a class="btn btn-primary" href="{{ url('/signup.php') }}">Sign Up</a>
+                        <a class="btn btn-primary" href="{{ route('signup.start') }}">Sign Up</a>
                     @endif
                 @endauth
             </div>
@@ -1451,13 +1449,13 @@
                     <img class="roles-cta-media" src="{{ asset('images/tourist.png') }}" alt="Tourist looking for local guidance">
                     <h3 class="hero-font">I am a confused tourist</h3>
                     <p>I want to explore the Philippines but do not know where to start. I want real spots, real food, and a local who knows the way.</p>
-                    <a class="roles-cta-button primary" href="{{ url('/signup.php') }}">Match me with a local guide -></a>
+                    <a class="roles-cta-button primary" href="{{ route('signup.start') }}">Match me with a local guide -></a>
                 </article>
                 <article class="roles-cta-card">
                     <img class="roles-cta-media" src="{{ asset('images/tourguide.jpg') }}" alt="Local guide showcasing hometown culture">
                     <h3 class="hero-font">I am a local guide</h3>
                     <p>I know my hometown like the back of my hand. I want to share my stories and hidden spots and earn from what I love.</p>
-                    <a class="roles-cta-button ghost" href="{{ url('/signup.php') }}">Apply to showcase my hometown -></a>
+                    <a class="roles-cta-button ghost" href="{{ route('signup.start') }}">Apply to showcase my hometown -></a>
                 </article>
             </div>
         </section>

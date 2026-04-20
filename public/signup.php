@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+header('Location: /signup');
+exit;
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }

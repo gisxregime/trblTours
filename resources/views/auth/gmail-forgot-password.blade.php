@@ -81,50 +81,51 @@
                 <p class="mt-1 text-sm text-[#584637]">Enter your email and we will send a reset link so you can choose a new password.</p>
             </div>
 
-            @if (session('status'))
-                <div class="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
-                    {{ session('status') }}
-                </div>
-            @endif
+        @if (session('errors')?->any())
+            <div class="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+                {{ session('errors')->first() }}
+            </div>
+        @endif
 
-            @if (session('errors')?->any())
-                <div class="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
-                    {{ session('errors')->first() }}
-                </div>
-            @endif
+        @if (session('message'))
+            <div class="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{{ session('message') }}</div>
+        @endif
 
-            <form method="POST" action="{{ route('password.email') }}" class="space-y-4">
-                @csrf
+        @if (session('error'))
+            <div class="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">{{ session('error') }}</div>
+        @endif
 
-                <p class="border-b border-[#d4c5b2] pb-2 text-[11px] font-semibold uppercase tracking-[0.09em] text-[#604c3a]">Password Reset</p>
+        <form method="POST" action="{{ route('gmail.reset.link.send') }}" class="space-y-4">
+            @csrf
 
-                <div>
-                    <label for="email" class="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-[#5c4a3a]">Email Address <span class="text-[#9a4f1d]">*</span></label>
-                    <input
-                        id="email"
-                        type="email"
-                        name="email"
-                        value="{{ old('email') }}"
-                        required
-                        autofocus
-                        autocomplete="email"
-                        placeholder="example@email.com"
-                        class="w-full rounded-lg border border-[#d8c9b5] bg-[#f4efe6] px-3 py-2.5 text-sm text-[#2f241a] outline-none transition placeholder:text-[#958067] focus:border-[#9a5f2a] focus:ring-0"
-                    >
-                </div>
+            <p class="border-b border-[#d4c5b2] pb-2 text-[11px] font-semibold uppercase tracking-[0.09em] text-[#604c3a]">Password Reset</p>
 
-                <button
-                    type="submit"
-                    class="mt-2 w-full rounded-full bg-[#8b4e1c] px-4 py-2.5 text-sm font-semibold text-[#f8efe3] transition hover:bg-[#764116]"
+            <div>
+                <label for="email" class="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-[#5c4a3a]">Email Address <span class="text-[#9a4f1d]">*</span></label>
+                <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value="{{ old('email') }}"
+                    required
+                    autofocus
+                    placeholder="example@email.com"
+                    class="w-full rounded-lg border border-[#d8c9b5] bg-[#f4efe6] px-3 py-2.5 text-sm text-[#2f241a] outline-none transition placeholder:text-[#958067] focus:border-[#9a5f2a] focus:ring-0"
                 >
-                    Email Password Reset Link
-                </button>
+            </div>
 
-                <p class="pt-1 text-center text-sm text-[#6f5b46]">
-                    Remembered your password?
-                    <a href="{{ route('login') }}" class="font-medium text-[#4b3828] hover:underline">Log in</a>
-                </p>
-            </form>
+            <button
+                type="submit"
+                class="mt-2 w-full rounded-full bg-[#8b4e1c] px-4 py-2.5 text-sm font-semibold text-[#f8efe3] transition hover:bg-[#764116]"
+            >
+                Send Reset Link
+            </button>
+        </form>
+
+            <p class="pt-1 text-center text-sm text-[#6f5b46]">
+                Remembered your password?
+                <a href="{{ route('gmail.login') }}" class="font-medium text-[#4b3828] hover:underline">Log in</a>
+            </p>
         </section>
     </main>
 </body>

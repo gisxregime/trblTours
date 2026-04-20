@@ -1,0 +1,37 @@
+<?php
+
+namespace App\Mail;
+
+use Illuminate\Bus\Queueable;
+use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Content;
+use Illuminate\Mail\Mailables\Envelope;
+use Illuminate\Queue\SerializesModels;
+
+class SignupVerificationMail extends Mailable
+{
+    use Queueable, SerializesModels;
+
+    public function __construct(
+        public string $verificationUrl,
+        public string $email,
+    ) {}
+
+    public function envelope(): Envelope
+    {
+        return new Envelope(
+            subject: 'Verify your TribalTours email',
+        );
+    }
+
+    public function content(): Content
+    {
+        return new Content(
+            markdown: 'emails.signup-verification',
+            with: [
+                'verificationUrl' => $this->verificationUrl,
+                'email' => $this->email,
+            ],
+        );
+    }
+}

@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="<?php echo e(str_replace('_', '-', app()->getLocale())); ?>">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ config('app.name', 'TrblTours') }} - Forgot Password</title>
+    <meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
+    <title><?php echo e(config('app.name', 'TrblTours')); ?> - Forgot Password</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,7 +13,7 @@
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <?php echo app('Illuminate\Foundation\Vite')(['resources/css/app.css', 'resources/js/app.js']); ?>
 
     <style>
         .brand-font {
@@ -65,13 +65,13 @@
 </head>
 <body>
     <div class="brand-header">
-        <img src="{{ asset('images/tribaltours_icon.png') }}" alt="TrblTours" class="brand-icon">
+        <img src="<?php echo e(asset('images/tribaltours_icon.png')); ?>" alt="TrblTours" class="brand-icon">
         <div class="brand-text brand-font">TrblTours</div>
     </div>
 
     <main class="min-h-screen flex items-center justify-center px-4 py-8">
         <section class="panel">
-            <a href="{{ url('/') }}" class="inline-flex items-center gap-2 rounded-full border border-[#d8c9b5] bg-[#f4efe6] px-3 py-1.5 text-[13px] font-medium text-[#4b3828] shadow-sm transition hover:bg-[#ece1d0]">
+            <a href="<?php echo e(url('/')); ?>" class="inline-flex items-center gap-2 rounded-full border border-[#d8c9b5] bg-[#f4efe6] px-3 py-1.5 text-[13px] font-medium text-[#4b3828] shadow-sm transition hover:bg-[#ece1d0]">
                 <i class="fas fa-arrow-left text-[10px]" aria-hidden="true"></i>
                 <span>Back to Home</span>
             </a>
@@ -81,20 +81,22 @@
                 <p class="mt-1 text-sm text-[#584637]">Enter your email and we will send a reset link so you can choose a new password.</p>
             </div>
 
-            @if (session('status'))
+            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(session('status')): ?>
                 <div class="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
-                    {{ session('status') }}
-                </div>
-            @endif
+                    <?php echo e(session('status')); ?>
 
-            @if (session('errors')?->any())
+                </div>
+            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+
+            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(session('errors')?->any()): ?>
                 <div class="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
-                    {{ session('errors')->first() }}
-                </div>
-            @endif
+                    <?php echo e(session('errors')->first()); ?>
 
-            <form method="POST" action="{{ route('password.email') }}" class="space-y-4">
-                @csrf
+                </div>
+            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+
+            <form method="POST" action="<?php echo e(route('password.email')); ?>" class="space-y-4">
+                <?php echo csrf_field(); ?>
 
                 <p class="border-b border-[#d4c5b2] pb-2 text-[11px] font-semibold uppercase tracking-[0.09em] text-[#604c3a]">Password Reset</p>
 
@@ -104,7 +106,7 @@
                         id="email"
                         type="email"
                         name="email"
-                        value="{{ old('email') }}"
+                        value="<?php echo e(old('email')); ?>"
                         required
                         autofocus
                         autocomplete="email"
@@ -122,10 +124,11 @@
 
                 <p class="pt-1 text-center text-sm text-[#6f5b46]">
                     Remembered your password?
-                    <a href="{{ route('login') }}" class="font-medium text-[#4b3828] hover:underline">Log in</a>
+                    <a href="<?php echo e(route('login')); ?>" class="font-medium text-[#4b3828] hover:underline">Log in</a>
                 </p>
             </form>
         </section>
     </main>
 </body>
 </html>
+<?php /**PATH /home/mistah-regime/tribaltours/resources/views/auth/forgot-password.blade.php ENDPATH**/ ?>
