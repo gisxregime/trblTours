@@ -1350,54 +1350,7 @@
                     </div>
                 </div>
 
-                <div class="hero-search">
-                    <div class="hero-search-grid">
-                        <div class="search-segment" id="locationTrigger">
-                            <span class="search-icon" aria-hidden="true">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M12 21s7-4.35 7-11a7 7 0 1 0-14 0c0 6.65 7 11 7 11Z" />
-                                    <circle cx="12" cy="10" r="2.5" />
-                                </svg>
-                            </span>
-                            <input id="accommodation" class="search-input" type="text" placeholder="Where to?" autocomplete="off" aria-label="Where to" aria-autocomplete="list" aria-controls="placeSuggestions">
-                            <div id="placeSuggestions" class="place-suggestions" role="listbox" aria-label="Place suggestions"></div>
-                        </div>
-                        <div class="search-segment" id="anytimeTrigger">
-                            <span class="search-icon" aria-hidden="true">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                                    <rect x="3" y="5" width="18" height="16" rx="2" />
-                                    <path d="M16 3v4M8 3v4M3 10h18" />
-                                </svg>
-                            </span>
-                            <button class="date-toggle" id="anytimeToggle" type="button" aria-expanded="false" aria-controls="dateDropdown" aria-label="Select dates">
-                                <span id="anytimeLabel" class="search-display">Anytime</span>
-                            </button>
-                            <div class="date-dropdown" id="dateDropdown" role="dialog" aria-label="Select stay dates">
-                                <p class="date-dropdown-title">Select your stay</p>
-                                <div class="date-fields">
-                                    <div class="date-field">
-                                        <label for="checkinDate">Check-in</label>
-                                        <input id="checkinDate" type="date">
-                                    </div>
-                                    <div class="date-field">
-                                        <label for="checkoutDate">Check-out</label>
-                                        <input id="checkoutDate" type="date">
-                                    </div>
-                                </div>
-                                <p class="date-duration" id="stayDuration">Duration: Select both dates</p>
-                            </div>
-                        </div>
-                        <div class="search-action">
-                            <button class="search-button" type="button">
-                                <span class="search-icon" aria-hidden="true">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <circle cx="11" cy="11" r="7" />
-                                        <path d="m20 20-3.5-3.5" />
-                                    </svg>
-                                </span>
-                                Search
-                            </button>
-                        </div>
+                
                     </div>
                 </div>
             </div>
