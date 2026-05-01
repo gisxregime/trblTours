@@ -141,16 +141,22 @@ class GuideDashboard extends Component
         $activeTours = 0;
         if (Schema::hasTable('tours')) {
             $activeToursQuery = Tour::query();
+            $hasGuideId = Schema::hasColumn('tours', 'guide_id');
+            $hasCreatedBy = Schema::hasColumn('tours', 'created_by');
 
-            if (Schema::hasColumn('tours', 'guide_id')) {
+            if ($hasGuideId && $hasCreatedBy) {
                 $activeToursQuery->where(function ($query) use ($guideId): void {
                     $query->where('guide_id', $guideId)
                         ->orWhere(function ($fallback) use ($guideId): void {
                             $fallback->whereNull('guide_id')->where('created_by', $guideId);
                         });
                 });
-            } else {
+            } elseif ($hasGuideId) {
+                $activeToursQuery->where('guide_id', $guideId);
+            } elseif ($hasCreatedBy) {
                 $activeToursQuery->where('created_by', $guideId);
+            } else {
+                $activeToursQuery->whereRaw('1 = 0');
             }
 
             if (Schema::hasColumn('tours', 'status')) {
@@ -169,8 +175,10 @@ class GuideDashboard extends Component
 
             if (Schema::hasColumn('tours', 'guide_id')) {
                 $featuredToursQuery->where('tours.guide_id', $guideId);
-            } else {
+            } elseif (Schema::hasColumn('tours', 'created_by')) {
                 $featuredToursQuery->where('tours.created_by', $guideId);
+            } else {
+                $featuredToursQuery->whereRaw('1 = 0');
             }
 
             $featuredTours = (int) $featuredToursQuery->distinct()->count('bookings.tour_id');
@@ -258,15 +266,22 @@ class GuideDashboard extends Component
         $guideTours = collect();
         if (Schema::hasTable('tours')) {
             $toursQuery = Tour::query();
-            if (Schema::hasColumn('tours', 'guide_id')) {
+            $hasGuideId = Schema::hasColumn('tours', 'guide_id');
+            $hasCreatedBy = Schema::hasColumn('tours', 'created_by');
+
+            if ($hasGuideId && $hasCreatedBy) {
                 $toursQuery->where(function ($query) use ($guideId): void {
                     $query->where('guide_id', $guideId)
                         ->orWhere(function ($fallback) use ($guideId): void {
                             $fallback->whereNull('guide_id')->where('created_by', $guideId);
                         });
                 });
-            } else {
+            } elseif ($hasGuideId) {
+                $toursQuery->where('guide_id', $guideId);
+            } elseif ($hasCreatedBy) {
                 $toursQuery->where('created_by', $guideId);
+            } else {
+                $toursQuery->whereRaw('1 = 0');
             }
             $guideTours = $toursQuery->latest()->get();
         }

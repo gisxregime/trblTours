@@ -132,7 +132,7 @@
                     <section class="space-y-3 rounded-2xl border border-[#d4a563]/25 bg-[#fffaf2] p-4 sm:p-5">
                         <div class="flex items-center justify-between gap-3">
                             <h4 class="text-sm font-semibold text-slate-800">Tour Package Pictures</h4>
-                            <span class="text-xs text-slate-500">Max 3 photos</span>
+                            <span class="text-xs text-slate-500">Max 5 photos</span>
                         </div>
 
                         <input
@@ -143,7 +143,7 @@
                             multiple
                             class="block w-full text-sm text-slate-700 file:mr-3 file:rounded-lg file:border-0 file:bg-[#7a8730] file:px-3 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-[#697629]"
                         >
-                        <p class="text-xs text-slate-500">Upload up to 3 images for activity/tour preview. Photos are saved automatically after selection.</p>
+                        <p class="text-xs text-slate-500">Upload up to 5 images for activity/tour preview. Photos are saved automatically after selection.</p>
 
                         <div wire:loading wire:target="tourPhotos" class="text-xs text-[#6c792a]">Uploading photos...</div>
                         @error('tourPhotos') <p class="mt-1 text-xs text-rose-600">{{ $message }}</p> @enderror
@@ -326,7 +326,7 @@
                                 @endforeach
                             @else
                                 <div class="col-span-3 rounded-lg border border-dashed border-slate-300 px-3 py-4 text-center text-xs text-slate-500">
-                                    Add up to 3 tour package photos.
+                                    Add up to 5 tour package photos.
                                 </div>
                             @endif
                         </div>

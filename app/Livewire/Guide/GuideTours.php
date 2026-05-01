@@ -83,7 +83,7 @@ class GuideTours extends Component
         $galleryImages = $this->resolveGalleryImages($tour);
         if ($this->tourPhotos !== []) {
             $galleryImages = collect($this->tourPhotos)
-                ->take(3)
+                ->take(5)
                 ->map(fn (TemporaryUploadedFile $photo): string => $photo->store('guide/tour-gallery', 'public'))
                 ->values()
                 ->all();
@@ -152,7 +152,7 @@ class GuideTours extends Component
 
         $this->tourPhotos = collect($this->tourPhotos)
             ->filter(fn (mixed $photo): bool => $photo instanceof TemporaryUploadedFile || $photo instanceof UploadedFile)
-            ->take(3)
+            ->take(5)
             ->values()
             ->all();
 
@@ -261,7 +261,7 @@ class GuideTours extends Component
             'form.price_unit' => ['required', 'string', 'in:person,group'],
             'form.available_on' => ['nullable', 'date'],
             'form.status' => ['required', 'string', 'in:draft,pending_review,active,paused'],
-            'tourPhotos' => ['nullable', 'array', 'max:3'],
+            'tourPhotos' => ['nullable', 'array', 'max:5'],
             'tourPhotos.*' => ['image', 'max:4096'],
         ];
     }
@@ -296,16 +296,33 @@ class GuideTours extends Component
      */
     private function getGuideToursQuery(int $guideId)
     {
+        $hasGuideId = Schema::hasColumn('tours', 'guide_id');
+        $hasCreatedBy = Schema::hasColumn('tours', 'created_by');
+
         return Tour::query()
-            ->where(function ($query) use ($guideId): void {
-                if (Schema::hasColumn('tours', 'guide_id')) {
+            ->where(function ($query) use ($guideId, $hasGuideId, $hasCreatedBy): void {
+                if ($hasGuideId && $hasCreatedBy) {
                     $query->where('guide_id', $guideId)
                         ->orWhere(function ($fallback) use ($guideId): void {
                             $fallback->whereNull('guide_id')->where('created_by', $guideId);
                         });
-                } else {
-                    $query->where('created_by', $guideId);
+
+                    return;
                 }
+
+                if ($hasGuideId) {
+                    $query->where('guide_id', $guideId);
+
+                    return;
+                }
+
+                if ($hasCreatedBy) {
+                    $query->where('created_by', $guideId);
+
+                    return;
+                }
+
+                $query->whereRaw('1 = 0');
             });
     }
 
@@ -590,7 +607,7 @@ class GuideTours extends Component
         $galleryImages = collect(array_merge($existingImages, $storedNewImages))
             ->filter(fn (mixed $value): bool => is_string($value) && $value !== '')
             ->unique()
-            ->take(3)
+            ->take(5)
             ->values()
             ->all();
 

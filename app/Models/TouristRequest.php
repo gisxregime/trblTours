@@ -18,9 +18,36 @@ class TouristRequest extends Model
     protected $fillable = [
         'tour_listing_id',
         'tourist_id',
+        'selected_guide_id',
+        'selected_comment_id',
+        'service_location_id',
+        'title',
+        'location',
+        'preferred_date',
+        'passenger_count',
+        'budget_min',
+        'budget_max',
+        'duration',
+        'region',
+        'adults',
+        'children',
+        'interests',
+        'description',
         'message',
         'status',
+        'completed_at',
     ];
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'preferred_date' => 'date',
+            'completed_at' => 'datetime',
+        ];
+    }
 
     public function tourListing(): BelongsTo
     {
@@ -37,6 +64,16 @@ class TouristRequest extends Model
         return $this->hasMany(Comment::class);
     }
 
+    public function selectedGuide(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'selected_guide_id');
+    }
+
+    public function selectedComment(): BelongsTo
+    {
+        return $this->belongsTo(Comment::class, 'selected_comment_id');
+    }
+
     public function booking(): HasOne
     {
         return $this->hasOne(Booking::class);
@@ -45,5 +82,10 @@ class TouristRequest extends Model
     public function messages(): HasMany
     {
         return $this->hasMany(Message::class);
+    }
+
+    public function conversations(): HasMany
+    {
+        return $this->hasMany(Conversation::class);
     }
 }

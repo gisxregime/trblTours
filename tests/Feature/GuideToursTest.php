@@ -116,7 +116,7 @@ it('saves long summaries without overflowing short_description', function () {
     }
 });
 
-it('keeps only the first three tour photos when more are selected', function () {
+it('keeps only the first five tour photos when more are selected', function () {
     Storage::fake('public');
 
     $user = User::factory()->create([
@@ -141,6 +141,8 @@ it('keeps only the first three tour photos when more are selected', function () 
             UploadedFile::fake()->create('tour-2.jpg', 200, 'image/jpeg'),
             UploadedFile::fake()->create('tour-3.jpg', 200, 'image/jpeg'),
             UploadedFile::fake()->create('tour-4.jpg', 200, 'image/jpeg'),
+            UploadedFile::fake()->create('tour-5.jpg', 200, 'image/jpeg'),
+            UploadedFile::fake()->create('tour-6.jpg', 200, 'image/jpeg'),
         ])
         ->call('save')
         ->assertHasNoErrors();
@@ -149,14 +151,14 @@ it('keeps only the first three tour photos when more are selected', function () 
 
     expect($tour)->not->toBeNull()
         ->and(is_array($tour?->gallery_images))->toBeTrue()
-        ->and(count((array) $tour?->gallery_images))->toBe(3);
+        ->and(count((array) $tour?->gallery_images))->toBe(5);
 
     foreach ((array) $tour?->gallery_images as $imagePath) {
         expect(Storage::disk('public')->exists($imagePath))->toBeTrue();
     }
 });
 
-it('accumulates photos across upload events up to three', function () {
+it('accumulates photos across upload events up to five', function () {
     Storage::fake('public');
 
     $user = User::factory()->create([
@@ -173,13 +175,17 @@ it('accumulates photos across upload events up to three', function () {
         ->call('processTourPhotos')
         ->set('tourPhotos', [UploadedFile::fake()->create('tour-3.jpg', 200, 'image/jpeg')])
         ->call('processTourPhotos')
+        ->set('tourPhotos', [UploadedFile::fake()->create('tour-4.jpg', 200, 'image/jpeg')])
+        ->call('processTourPhotos')
+        ->set('tourPhotos', [UploadedFile::fake()->create('tour-5.jpg', 200, 'image/jpeg')])
+        ->call('processTourPhotos')
         ->assertHasNoErrors();
 
     $tour = Tour::query()->latest('id')->first();
 
     expect($tour)->not->toBeNull()
         ->and(is_array($tour?->gallery_images))->toBeTrue()
-        ->and(count((array) $tour?->gallery_images))->toBe(3);
+        ->and(count((array) $tour?->gallery_images))->toBe(5);
 });
 
 it('pre-fills form fields with latest draft data when editing', function () {

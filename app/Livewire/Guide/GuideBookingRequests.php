@@ -64,7 +64,7 @@ class GuideBookingRequests extends Component
 
         if (Schema::hasTable('booking_requests')) {
             $requests = BookingRequest::query()
-                ->with(['tour:id,title,name,region', 'tourist:id,full_name,name'])
+                ->with(['tour:id,title,region', 'tourist:id,full_name,name'])
                 ->where('guide_id', (int) Auth::id())
                 ->when($this->statusFilter !== 'all', fn ($query) => $query->where('status', $this->statusFilter))
                 ->latest()

@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class ProfileController extends Controller
@@ -24,15 +26,58 @@ class ProfileController extends Controller
     /**
      * Update the user's profile information.
      */
-    public function update(ProfileUpdateRequest $request): RedirectResponse
+    public function update(ProfileUpdateRequest $request): RedirectResponse|JsonResponse
     {
-        $request->user()->fill($request->validated());
+        $validated = $request->validated();
+        $user = $request->user();
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        unset($validated['profile_photo'], $validated['cover_photo']);
+
+        $user->fill($validated);
+
+        if ($request->hasFile('profile_photo')) {
+            if ($user->profile_photo_path) {
+                Storage::disk('public')->delete($user->profile_photo_path);
+            }
+
+            $user->profile_photo_path = $request->file('profile_photo')->store('profile-photos', 'public');
         }
 
-        $request->user()->save();
+        if ($request->hasFile('cover_photo')) {
+            if ($user->cover_photo_path) {
+                Storage::disk('public')->delete($user->cover_photo_path);
+            }
+
+            $user->cover_photo_path = $request->file('cover_photo')->store('profile-covers', 'public');
+        }
+
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
+        }
+
+        $user->save();
+
+        if ($request->expectsJson()) {
+            $displayName = $user->full_name ?: $user->name;
+            $initial = strtoupper(substr(trim((string) $displayName), 0, 1) ?: 'T');
+
+            return response()->json([
+                'status' => 'profile-updated',
+                'message' => 'Profile updated successfully.',
+                'data' => [
+                    'display_name' => $displayName,
+                    'bio' => $user->bio,
+                    'region' => $user->region,
+                    'initial' => $initial,
+                    'profile_photo_url' => $user->profile_photo_path
+                        ? Storage::url($user->profile_photo_path)
+                        : null,
+                    'cover_photo_url' => $user->cover_photo_path
+                        ? Storage::url($user->cover_photo_path)
+                        : null,
+                ],
+            ]);
+        }
 
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }

@@ -13,6 +13,14 @@
 
     <?php echo app('Illuminate\Foundation\Vite')(['resources/css/app.css', 'resources/js/app.js']); ?>
 
+    <?php
+        $selectedRole = old('role', $defaultRole ?? 'tourist');
+        $isGuideLogin = in_array($selectedRole, ['guide', 'tour_guide'], true);
+        $errorBag = session('errors');
+        $firstError = $errorBag?->first();
+        $hasErrors = filled($firstError);
+    ?>
+
     <style>
         * {
             box-sizing: border-box;
@@ -304,12 +312,12 @@
             <h1 class="title">Log in to Your Account</h1>
 
             <div class="role-toggle" data-role-toggle>
-                <button type="button" class="role-btn active" data-role-button="tourist">
+                <button type="button" class="role-btn <?php echo e($isGuideLogin ? '' : 'active'); ?>" data-role-button="tourist">
                     <span class="role-icon"><i class="fas fa-user"></i></span>
                     <span class="text-sm font-medium">Login as a Tourist</span>
                 </button>
 
-                <button type="button" class="role-btn" data-role-button="tour_guide">
+                <button type="button" class="role-btn <?php echo e($isGuideLogin ? 'active' : ''); ?>" data-role-button="tour_guide">
                     <span class="role-icon"><i class="fas fa-map"></i></span>
                     <span class="text-sm font-medium">Login as a Tour Guide</span>
                 </button>
@@ -319,10 +327,10 @@
                 <div class="alert success"><?php echo e(session('status')); ?></div>
             <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($errors->any()): ?>
+            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($hasErrors): ?>
                 <div class="alert error">
-                    <div><?php echo e($errors->first()); ?></div>
-                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(str_contains($errors->first(), 'sign up')): ?>
+                    <div><?php echo e($firstError); ?></div>
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($firstError && str_contains($firstError, 'sign up')): ?>
                         <div style="margin-top: 8px;">
                             <a href="<?php echo e(route('signup.start')); ?>" style="color: #991b1b; text-decoration: underline; font-weight: 600;">→ Go to Sign Up</a>
                         </div>
@@ -330,9 +338,9 @@
                 </div>
             <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-            <form method="POST" action="<?php echo e(route('login')); ?>" class="form-grid" data-auth-form>
+            <form method="POST" action="<?php echo e($formActionRoute ?? route('login')); ?>" class="form-grid" data-auth-form>
                 <?php echo csrf_field(); ?>
-                <input type="hidden" name="role" value="tourist" data-role-input>
+                <input type="hidden" name="role" value="<?php echo e($selectedRole); ?>" data-role-input>
 
                 <div>
                     <div class="section-title">Account Information</div>
@@ -402,7 +410,7 @@ unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendB
                 <button type="submit" class="submit-btn">Log in</button>
 
                 <p class="footer-links">
-                    Don't have an account yet? <a href="<?php echo e(route('signup.start')); ?>">Sign up</a>
+                    New here? <a href="<?php echo e(route('signup.start')); ?>">Create an account.</a>
                 </p>
             </form>
         </section>

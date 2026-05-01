@@ -13,6 +13,14 @@
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
+    @php
+        $selectedRole = old('role', $defaultRole ?? 'tourist');
+        $isGuideLogin = in_array($selectedRole, ['guide', 'tour_guide'], true);
+        $errorBag = session('errors');
+        $firstError = $errorBag?->first();
+        $hasErrors = filled($firstError);
+    @endphp
+
     <style>
         * {
             box-sizing: border-box;
@@ -304,12 +312,12 @@
             <h1 class="title">Log in to Your Account</h1>
 
             <div class="role-toggle" data-role-toggle>
-                <button type="button" class="role-btn active" data-role-button="tourist">
+                <button type="button" class="role-btn {{ $isGuideLogin ? '' : 'active' }}" data-role-button="tourist">
                     <span class="role-icon"><i class="fas fa-user"></i></span>
                     <span class="text-sm font-medium">Login as a Tourist</span>
                 </button>
 
-                <button type="button" class="role-btn" data-role-button="tour_guide">
+                <button type="button" class="role-btn {{ $isGuideLogin ? 'active' : '' }}" data-role-button="tour_guide">
                     <span class="role-icon"><i class="fas fa-map"></i></span>
                     <span class="text-sm font-medium">Login as a Tour Guide</span>
                 </button>
@@ -319,10 +327,10 @@
                 <div class="alert success">{{ session('status') }}</div>
             @endif
 
-            @if ($errors->any())
+            @if ($hasErrors)
                 <div class="alert error">
-                    <div>{{ $errors->first() }}</div>
-                    @if (str_contains($errors->first(), 'sign up'))
+                    <div>{{ $firstError }}</div>
+                    @if ($firstError && str_contains($firstError, 'sign up'))
                         <div style="margin-top: 8px;">
                             <a href="{{ route('signup.start') }}" style="color: #991b1b; text-decoration: underline; font-weight: 600;">→ Go to Sign Up</a>
                         </div>
@@ -330,9 +338,9 @@
                 </div>
             @endif
 
-            <form method="POST" action="{{ route('login') }}" class="form-grid" data-auth-form>
+            <form method="POST" action="{{ $formActionRoute ?? route('login') }}" class="form-grid" data-auth-form>
                 @csrf
-                <input type="hidden" name="role" value="tourist" data-role-input>
+                <input type="hidden" name="role" value="{{ $selectedRole }}" data-role-input>
 
                 <div>
                     <div class="section-title">Account Information</div>
@@ -388,7 +396,7 @@
                 <button type="submit" class="submit-btn">Log in</button>
 
                 <p class="footer-links">
-                    Don't have an account yet? <a href="{{ route('signup.start') }}">Sign up</a>
+                    New here? <a href="{{ route('signup.start') }}">Create an account.</a>
                 </p>
             </form>
         </section>

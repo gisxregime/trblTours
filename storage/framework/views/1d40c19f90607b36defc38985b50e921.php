@@ -234,7 +234,6 @@
                     <?php echo csrf_field(); ?>
 
                     <p class="border-b border-[#d4c5b2] pb-2 text-[11px] font-semibold uppercase tracking-[0.09em] text-[#604c3a]">Role Selection</p>
-                    <p class="text-sm text-[#6f5b46]">Verified email: <?php echo e($draft->email); ?></p>
 
                     <div class="role-toggle">
                         <label class="role-btn <?php echo e(old('role', 'tourist') === 'tourist' ? 'active' : ''); ?>" for="role_tourist">

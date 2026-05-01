@@ -5,13 +5,15 @@ namespace App\Http\Controllers;
 use App\Models\BookingRequest;
 use App\Models\Tour;
 use App\Models\User;
+use Carbon\CarbonInterface;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Database\Eloquent\Builder;
 
 class DashboardController extends Controller
 {
@@ -165,13 +167,179 @@ class DashboardController extends Controller
             ]
         );
 
+        $bootstrapTours = $results
+            ->filter(fn (array $item): bool => ($item['type'] ?? '') === 'tour_listing')
+            ->map(fn (array $item): array => $this->transformTourForFrontend($item['data']))
+            ->values();
+
+        $bootstrapRequests = $results
+            ->filter(fn (array $item): bool => ($item['type'] ?? '') === 'request_post')
+            ->map(fn (array $item): array => $this->transformRequestForFrontend($item['data']))
+            ->values();
+
+        $bootstrapMyPosts = BookingRequest::query()
+            ->with(['tour:id,title,region'])
+            ->where('tourist_id', $user->id)
+            ->latest()
+            ->limit(12)
+            ->get()
+            ->map(fn (BookingRequest $bookingRequest): array => $this->transformRequestForFrontend($bookingRequest, true))
+            ->values();
+
         return view('dashboards.tourist', [
             'regions' => $regions,
             'location' => $location,
             'postType' => $postType,
             'sortBy' => $sortBy,
             'posts' => $paginatedPosts,
+            'bootstrapTours' => $bootstrapTours,
+            'bootstrapRequests' => $bootstrapRequests,
+            'bootstrapMyPosts' => $bootstrapMyPosts,
         ]);
+    }
+
+    public function touristApiTours(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        abort_unless($user?->role === 'tourist', 403);
+
+        $location = trim((string) $request->query('location', ''));
+        $sortBy = (string) $request->query('sort_by', 'latest');
+
+        if (! in_array($sortBy, ['latest', 'price_low_high', 'price_high_low'], true)) {
+            $sortBy = 'latest';
+        }
+
+        $query = Tour::query()
+            ->with(['marketplaceGuide:id,name,full_name,role,status'])
+            ->whereHas('marketplaceGuide', function (Builder $builder): void {
+                $builder->whereIn('role', ['guide', 'tour_guide'])
+                    ->where('status', 'active');
+            })
+            ->when($location !== '', function (Builder $builder) use ($location): void {
+                $builder->where('region', 'like', "%{$location}%");
+            });
+
+        if ($sortBy === 'price_low_high') {
+            $query->orderByRaw('COALESCE(price_per_person, price, 0) asc');
+        } elseif ($sortBy === 'price_high_low') {
+            $query->orderByRaw('COALESCE(price_per_person, price, 0) desc');
+        } else {
+            $query->latest();
+        }
+
+        $data = $query
+            ->limit(36)
+            ->get()
+            ->map(fn (Tour $tour): array => $this->transformTourForFrontend($tour))
+            ->values();
+
+        return response()->json(['data' => $data]);
+    }
+
+    public function touristApiRequests(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        abort_unless($user?->role === 'tourist', 403);
+
+        $location = trim((string) $request->query('location', ''));
+        $sortBy = (string) $request->query('sort_by', 'latest');
+
+        if (! in_array($sortBy, ['latest', 'price_low_high', 'price_high_low'], true)) {
+            $sortBy = 'latest';
+        }
+
+        $query = BookingRequest::query()
+            ->addSelect([
+                'comment_count' => DB::table('messages')
+                    ->join('conversations', 'conversations.id', '=', 'messages.conversation_id')
+                    ->selectRaw('count(messages.id)')
+                    ->whereColumn('conversations.tourist_id', 'booking_requests.tourist_id')
+                    ->whereColumn('conversations.guide_id', 'booking_requests.guide_id')
+                    ->whereColumn('conversations.tour_id', 'booking_requests.tour_id'),
+            ])
+            ->with(['tour:id,title,region'])
+            ->when($location !== '', function (Builder $builder) use ($location): void {
+                $builder->whereHas('tour', function (Builder $tourQuery) use ($location): void {
+                    $tourQuery->where('region', 'like', "%{$location}%");
+                });
+            });
+
+        if ($sortBy === 'price_low_high') {
+            $query->orderBy('total_price');
+        } elseif ($sortBy === 'price_high_low') {
+            $query->orderByDesc('total_price');
+        } else {
+            $query->latest();
+        }
+
+        $data = $query
+            ->limit(36)
+            ->get()
+            ->map(fn (BookingRequest $bookingRequest): array => $this->transformRequestForFrontend($bookingRequest))
+            ->values();
+
+        return response()->json(['data' => $data]);
+    }
+
+    public function touristApiMyPosts(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        abort_unless($user?->role === 'tourist', 403);
+
+        $data = BookingRequest::query()
+            ->where('tourist_id', $user->id)
+            ->with(['tour:id,title,region'])
+            ->latest()
+            ->limit(50)
+            ->get()
+            ->map(fn (BookingRequest $bookingRequest): array => $this->transformRequestForFrontend($bookingRequest, true))
+            ->values();
+
+        return response()->json(['data' => $data]);
+    }
+
+    public function touristApiUpdateMyPost(Request $request, BookingRequest $bookingRequest): JsonResponse
+    {
+        $user = $request->user();
+
+        abort_unless($user?->role === 'tourist', 403);
+        abort_unless((int) $bookingRequest->tourist_id === (int) $user->id, 403);
+
+        $validated = $request->validate([
+            'budget' => ['nullable', 'numeric', 'min:0'],
+            'vibe' => ['nullable', 'string', 'max:255'],
+            'traveler_count' => ['nullable', 'integer', 'min:1', 'max:50'],
+        ]);
+
+        $bookingRequest->fill([
+            'total_price' => $validated['budget'] ?? $bookingRequest->total_price,
+            'special_requests' => $validated['vibe'] ?? $bookingRequest->special_requests,
+            'group_size' => $validated['traveler_count'] ?? $bookingRequest->group_size,
+        ]);
+
+        $bookingRequest->save();
+        $bookingRequest->loadMissing('tour:id,title,region');
+
+        return response()->json([
+            'message' => 'Post updated successfully.',
+            'data' => $this->transformRequestForFrontend($bookingRequest, true),
+        ]);
+    }
+
+    public function touristApiDeleteMyPost(Request $request, BookingRequest $bookingRequest): JsonResponse
+    {
+        $user = $request->user();
+
+        abort_unless($user?->role === 'tourist', 403);
+        abort_unless((int) $bookingRequest->tourist_id === (int) $user->id, 403);
+
+        $bookingRequest->delete();
+
+        return response()->json(['message' => 'Post deleted successfully.']);
     }
 
     public function guide(Request $request): View
@@ -319,5 +487,75 @@ class DashboardController extends Controller
         }
 
         return false;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function transformTourForFrontend(Tour $tour): array
+    {
+        $guide = $tour->marketplaceGuide;
+
+        return [
+            'id' => (int) $tour->id,
+            'type' => 'tour',
+            'title' => $tour->title ?? $tour->name ?? 'Untitled Tour',
+            'price' => (float) ($tour->price_per_person ?? $tour->price ?? 0),
+            'location' => $tour->region ?? 'Philippines',
+            'image_url' => $this->resolveImageUrl($tour->image_path, $tour->image_url),
+            'guide_name' => $guide?->full_name ?? $guide?->name ?? 'Verified Guide',
+            'verified_guide' => true,
+            'created_at' => $tour->created_at?->toIso8601String(),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function transformRequestForFrontend(BookingRequest $bookingRequest, bool $isMyPost = false): array
+    {
+        $requestedDate = $bookingRequest->requested_date;
+
+        return [
+            'id' => (int) $bookingRequest->id,
+            'type' => 'request',
+            'title' => $bookingRequest->tour?->title ?? 'Custom Tour Request',
+            'budget' => (float) $bookingRequest->total_price,
+            'vibe' => $bookingRequest->special_requests ?: 'Flexible vibe',
+            'traveler_count' => (int) ($bookingRequest->group_size ?? 1),
+            'comment_count' => (int) ($bookingRequest->comment_count ?? 0),
+            'location' => $bookingRequest->tour?->region ?? 'Philippines',
+            'image_url' => $this->resolveImageUrl($bookingRequest->tour?->image_path, $bookingRequest->tour?->image_url),
+            'status' => $isMyPost
+                ? $this->requestStatusLabel($bookingRequest->status, $requestedDate)
+                : null,
+            'created_at' => $bookingRequest->created_at?->toIso8601String(),
+        ];
+    }
+
+    private function requestStatusLabel(?string $status, CarbonInterface|string|null $requestedDate): string
+    {
+        if (is_string($status) && in_array(strtolower($status), ['expired', 'cancelled', 'canceled'], true)) {
+            return 'Expired';
+        }
+
+        if ($requestedDate instanceof CarbonInterface && $requestedDate->isPast()) {
+            return 'Expired';
+        }
+
+        return 'Open';
+    }
+
+    private function resolveImageUrl(?string $imagePath, ?string $imageUrl): ?string
+    {
+        if (is_string($imageUrl) && trim($imageUrl) !== '') {
+            return $imageUrl;
+        }
+
+        if (is_string($imagePath) && trim($imagePath) !== '') {
+            return asset($imagePath);
+        }
+
+        return null;
     }
 }

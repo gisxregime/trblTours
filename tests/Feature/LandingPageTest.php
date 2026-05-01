@@ -2,6 +2,7 @@
 
 use App\Models\Tour;
 use App\Models\User;
+
 use function Pest\Laravel\get;
 
 it('shows featured tours from the database', function () {

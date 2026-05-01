@@ -13,7 +13,9 @@ class Message extends Model
     protected $fillable = [
         'conversation_id',
         'sender_id',
+        'body',
         'message',
+        'read_at',
         'is_read',
         'attachment_path',
     ];
@@ -24,6 +26,7 @@ class Message extends Model
     protected function casts(): array
     {
         return [
+            'read_at' => 'datetime',
             'is_read' => 'boolean',
         ];
     }

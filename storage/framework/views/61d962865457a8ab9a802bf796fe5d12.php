@@ -13,9 +13,11 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Asimovian:wght@400;700&family=Cal+Sans&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Asimovian:wght@400;700&family=Cal+Sans&display=swap"
+        rel="stylesheet">
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700&display=swap" rel="stylesheet">
+    <?php echo app('Illuminate\Foundation\Vite')(['resources/css/app.css']); ?>
 
     <style>
         :root {
@@ -111,8 +113,8 @@
         .header-nav a {
             text-decoration: none;
             color: #fff8eb;
-            font-size: 15px;
-            font-weight: 600;
+            font-size: 16px;
+            font-weight: 700;
             text-shadow: 0 2px 6px rgba(43, 30, 22, 0.3);
         }
 
@@ -244,6 +246,17 @@
             gap: 22px;
         }
 
+        .hero-cta {
+            justify-self: start;
+        }
+
+        .hero-copy-group {
+            display: grid;
+            gap: 14px;
+            justify-items: start;
+            width: 100%;
+        }
+
         .hero-grid {
             display: grid;
             grid-template-columns: 1.15fr 1.15fr;
@@ -293,7 +306,45 @@
             font-size: clamp(13px, 1.6vw, 15px);
             line-height: 1.00;
             font-weight: 600;
+            margin-left: -18px;
             text-shadow: 0 2px 8px rgba(43, 30, 22, 0.4);
+        }
+
+        .hero-note-cta {
+            display: grid;
+            gap: 14px;
+            justify-items: start;
+            width: 100%;
+        }
+
+        .hero-cta-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .hero-cta-primary {
+            background: #6f3e2c;
+            color: #ffffff;
+            border: 1px solid #6f3e2c;
+            box-shadow: 0 10px 22px rgba(63, 45, 34, 0.2);
+        }
+
+        .hero-cta-primary:hover {
+            transform: translateY(-1px);
+            background: #5c3224;
+        }
+
+        .hero-cta-ghost {
+            background: rgba(255, 248, 235, 0.94);
+            color: #6f3e2c;
+            border: 1px solid rgba(111, 62, 44, 0.45);
+            box-shadow: 0 10px 22px rgba(63, 45, 34, 0.14);
+        }
+
+        .hero-cta-ghost:hover {
+            transform: translateY(-1px);
+            background: #f5e8cc;
         }
 
         .hero-favorites-label {
@@ -404,7 +455,7 @@
             position: relative;
         }
 
-        .search-segment + .search-segment {
+        .search-segment+.search-segment {
             border-left: 1px solid #d4d0cb;
         }
 
@@ -829,7 +880,7 @@
         .roles-cta-grid {
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 16px;
+            gap: 24px;
             margin-top: 18px;
         }
 
@@ -846,19 +897,223 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
+            height: 100%;
+            position: relative;
+            border-radius: 16px;
+            border: 1px solid rgba(111, 62, 44, 0.12);
+            background: #f7f5f1;
+            box-shadow: 0 16px 30px rgba(63, 45, 34, 0.15);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .tour-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 20px 34px rgba(63, 45, 34, 0.2);
+        }
+
+        .tour-card::after {
+            content: '♡';
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 38px;
+            height: 38px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.95);
+            color: #3f2d22;
+            font-size: 22px;
+            line-height: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(111, 62, 44, 0.16);
+            z-index: 2;
+            box-shadow: 0 6px 18px rgba(63, 45, 34, 0.18);
         }
 
         .tour-card-image {
-            height: 160px;
+            height: 250px;
             background-size: cover;
             background-position: center;
             border-bottom: 1px solid rgba(139, 69, 19, 0.14);
+            filter: saturate(0.88) contrast(1.02);
         }
 
         .tour-card-body {
-            padding: 16px;
+            padding: 50px 20px 20px;
             display: grid;
-            gap: 7px;
+            gap: 8px;
+            align-content: start;
+            flex: 1;
+            position: relative;
+            background: #f3f2f0;
+        }
+
+        .tour-card-body .tour-line:first-child {
+            color: #221f1d;
+            font-size: 1.25rem;
+            line-height: 1.3;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }
+
+        .tour-card-body .tour-line:nth-child(5) {
+            position: absolute;
+            left: 14px;
+            right: 14px;
+            top: -20px;
+            background: rgba(255, 255, 255, 0.86);
+            border: 1px solid rgba(111, 62, 44, 0.16);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border-radius: 999px;
+            padding: 8px 14px 8px 56px;
+            font-size: 14px;
+            color: #2f2b29;
+            line-height: 1.2;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .tour-card-body .tour-line:nth-child(5)::before {
+            content: '';
+            position: absolute;
+            left: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 36px;
+            height: 36px;
+            border-radius: 999px;
+            border: 2px solid rgba(255, 255, 255, 0.95);
+            box-shadow: 0 4px 10px rgba(63, 45, 34, 0.2);
+            background: radial-gradient(circle at 30% 30%, #fff8eb, #8f9d59 70%);
+        }
+
+        .tour-card-body .tour-line:nth-child(6) {
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+            overflow: hidden;
+            color: #6f5d52;
+            font-size: 13px;
+        }
+
+        .tour-card-body .tour-line:nth-child(3) {
+            margin-top: auto;
+            font-size: 1.125rem;
+            line-height: 1.3;
+            color: #242220;
+            font-weight: 700;
+        }
+
+        .request-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(43, 30, 22, 0.55);
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
+            z-index: 120;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+        }
+
+        .request-modal-overlay.open {
+            display: flex;
+        }
+
+        .request-modal {
+            width: min(560px, 100%);
+            background: #fff8eb;
+            border-radius: 16px;
+            border: 1px solid rgba(111, 62, 44, 0.2);
+            box-shadow: 0 20px 44px rgba(43, 30, 22, 0.3);
+            padding: 22px;
+            display: grid;
+            gap: 14px;
+        }
+
+        .request-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .request-modal-title {
+            color: #6f3e2c;
+            font-size: clamp(24px, 3.2vw, 30px);
+            line-height: 1.15;
+            text-align: center;
+            width: 100%;
+            font-weight: 800;
+        }
+
+        .request-modal-close {
+            border: 1px solid rgba(111, 62, 44, 0.28);
+            border-radius: 999px;
+            width: 34px;
+            height: 34px;
+            background: #fff;
+            color: #6f3e2c;
+            font-size: 22px;
+            line-height: 1;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .request-form-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .request-form-field {
+            display: grid;
+            gap: 6px;
+        }
+
+        .request-form-field label {
+            color: #6f5d52;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 700;
+        }
+
+        .request-input,
+        .request-textarea {
+            width: 100%;
+            min-height: 44px;
+            border-radius: 12px;
+            border: 1px solid rgba(111, 62, 44, 0.3);
+            background: #fffefb;
+            padding: 10px 12px;
+            color: #3f2d22;
+            font-size: 15px;
+            outline: none;
+        }
+
+        .request-textarea {
+            min-height: 110px;
+            resize: vertical;
+        }
+
+        .request-input:focus,
+        .request-textarea:focus {
+            border-color: #6f3e2c;
+            box-shadow: 0 0 0 3px rgba(111, 62, 44, 0.14);
+        }
+
+        .request-form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 2px;
         }
 
         .tour-line {
@@ -879,12 +1134,14 @@
 
         .tips-card h3 {
             color: var(--brown-900);
+            font-weight: 700;
             font-size: clamp(19px, 2.2vw, 24px);
             line-height: 1.25;
         }
 
         .tips-card p {
             color: var(--brown-700);
+            font-weight: 500;
             font-size: 14px;
             line-height: 1.65;
         }
@@ -1141,6 +1398,10 @@
                 gap: 18px;
             }
 
+            .hero-small-note {
+                margin-left: 0;
+            }
+
             .header-nav {
                 display: none;
             }
@@ -1155,6 +1416,10 @@
                 gap: 10px;
             }
 
+            .hero-note-cta {
+                gap: 12px;
+            }
+
             .hero-search {
                 border-radius: 24px;
                 padding: 14px;
@@ -1167,7 +1432,7 @@
                 background: #fffefb;
             }
 
-            .search-segment + .search-segment {
+            .search-segment+.search-segment {
                 border-left: none;
             }
 
@@ -1237,6 +1502,14 @@
                 grid-template-columns: 1fr;
             }
 
+            .hero-cta-actions {
+                width: 100%;
+            }
+
+            .hero-cta-actions .btn {
+                width: 100%;
+            }
+
             .search-action {
                 justify-content: stretch;
             }
@@ -1268,7 +1541,7 @@
                 grid-template-columns: 1fr;
             }
 
-            .search-segment + .search-segment {
+            .search-segment+.search-segment {
                 border-left: none;
             }
 
@@ -1277,6 +1550,9 @@
             }
         }
     </style>
+    <?php echo \Livewire\Mechanisms\FrontendAssets\FrontendAssets::styles(); ?>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 
 <body>
@@ -1288,9 +1564,10 @@
             </a>
 
             <nav class="header-nav" aria-label="Primary navigation">
-                <a href="#">Dashboard</a>
-                <a href="#tourist-tips">Blogs</a>
-                <a href="#why-choose-us">About</a>
+                <a href="<?php echo e(route('explore-tours')); ?>">Explore Tours</a>
+                <a href="#tourist-tips">Become a Guide</a>
+                <a href="#why-choose-us">How It Works</a>
+                <a href="#why-choose-us">Safety Tips</a>
                 <select class="language-pill" aria-label="Language">
                     <option selected>English</option>
                     <option>Filipino</option>
@@ -1314,11 +1591,16 @@
         <section class="hero">
             <div class="hero-background">
                 <div class="hero-carousel" id="heroCarousel">
-                    <div class="hero-slide active"><img src="<?php echo e(asset('hero/caoursel1.webp')); ?>" alt="Philippine island landscape"></div>
-                    <div class="hero-slide"><img src="<?php echo e(asset('hero/carousel2.jpg')); ?>" alt="Philippine local destination"></div>
-                    <div class="hero-slide"><img src="<?php echo e(asset('hero/carousel3.jpg')); ?>" alt="Philippine scenic spot"></div>
-                    <div class="hero-slide"><img src="<?php echo e(asset('hero/carousel4.jpg')); ?>" alt="Philippine coastline"></div>
-                    <div class="hero-slide"><img src="<?php echo e(asset('hero/carousel5.jpg')); ?>" alt="Philippine island tour"></div>
+                    <div class="hero-slide active"><img src="<?php echo e(asset('hero/caoursel1.webp')); ?>"
+                            alt="Philippine island landscape"></div>
+                    <div class="hero-slide"><img src="<?php echo e(asset('hero/carousel2.jpg')); ?>"
+                            alt="Philippine local destination"></div>
+                    <div class="hero-slide"><img src="<?php echo e(asset('hero/carousel3.jpg')); ?>" alt="Philippine scenic spot">
+                    </div>
+                    <div class="hero-slide"><img src="<?php echo e(asset('hero/carousel4.jpg')); ?>" alt="Philippine coastline">
+                    </div>
+                    <div class="hero-slide"><img src="<?php echo e(asset('hero/carousel5.jpg')); ?>" alt="Philippine island tour">
+                    </div>
                 </div>
             </div>
 
@@ -1326,33 +1608,50 @@
                 <div class="hero-grid">
                     <div>
                         <span class="hero-kicker">SUMMIT ESCAPES | TROPICAL PARADISES | HERITAGE SITES</span>
-                        <h1 class="hero-font">Confused Where to Start in the Philippines? Let a Local Guide Show You.</h1>
-                        <p class="hero-small-note">For tourists who want real experiences. For local guides who want to share their hometown.</p>
+                        <h1 class="hero-font">Confused Where to Start in the Philippines? Let a Local Guide Show You.
+                        </h1>
+                        <div class="hero-note-cta">
+                            <h2 class="hero-small-note">Real-time messaging, verified guides, and scam-free booking</h2>
+                            <div class="hero-cta-actions">
+                                <a class="btn hero-cta hero-cta-primary" href="<?php echo e(route('explore-tours')); ?>">View All Tours</a>
+                                <button class="btn hero-cta hero-cta-ghost" type="button" id="openRequestModal">Create Tour Request</button>
+                            </div>
+                        </div>
                     </div>
 
                     <div>
                         <p class="hero-favorites-label">Guest Favorites</p>
                         <div class="favorites-grid" id="favoritesCarousel">
                             <article class="favorite-card active">
-                                <div class="favorite-card-image" style="background-image: url('<?php echo e(asset('hero/elnido.jpg')); ?>');"></div>
-                                <div class="favorite-card-body"><h6>Trip to El Nido</h6></div>
+                                <div class="favorite-card-image"
+                                    style="background-image: url('<?php echo e(asset('hero/elnido.jpg')); ?>');"></div>
+                                <div class="favorite-card-body">
+                                    <h6>Trip to El Nido</h6>
+                                </div>
                             </article>
                             <article class="favorite-card">
-                                <div class="favorite-card-image" style="background-image: url('<?php echo e(asset('hero/palawan.jpg')); ?>');"></div>
-                                <div class="favorite-card-body"><h6>Trip to Palawan</h6></div>
+                                <div class="favorite-card-image"
+                                    style="background-image: url('<?php echo e(asset('hero/palawan.jpg')); ?>');"></div>
+                                <div class="favorite-card-body">
+                                    <h6>Trip to Palawan</h6>
+                                </div>
                             </article>
                             <article class="favorite-card">
-                                <div class="favorite-card-image" style="background-image: url('<?php echo e(asset('hero/batad.jpg')); ?>');"></div>
-                                <div class="favorite-card-body"><h6>Trip to Batad</h6></div>
+                                <div class="favorite-card-image"
+                                    style="background-image: url('<?php echo e(asset('hero/batad.jpg')); ?>');"></div>
+                                <div class="favorite-card-body">
+                                    <h6>Trip to Batad</h6>
+                                </div>
                             </article>
                         </div>
-                        <p class="hero-copy">7,641 islands. Countless hidden spots. Skip the tourist traps — explore through the eyes of someone who actually lives there.</p>
+                        <div class="hero-copy-group">
+                            <p class="hero-copy">7,641 islands. Countless hidden spots. Skip the tourist traps —
+                                explore through the eyes of someone who actually lives there.</p>
+                        </div>
                     </div>
                 </div>
-
-                
-                    </div>
-                </div>
+            </div>
+            </div>
             </div>
         </section>
 
@@ -1360,37 +1659,132 @@
             <div class="container">
                 <div class="section-head">
                     <h2 class="hero-font">Why Choose Us</h2>
-                    <p>Built for curious travelers who want meaningful local experiences, with reliable support and flexible options from planning to booking.</p>
+                    <p>Built for curious travelers who want meaningful local experiences, with reliable support and
+                        flexible options from planning to booking.</p>
                 </div>
                 <div class="why-grid">
-                    <article class="why-card"><div class="why-icon">01</div><h3>Handpicked Local Guides</h3><p>We vet and curate every guide for local expertise, hospitality, and safety standards so each tour feels personal and trustworthy.</p></article>
-                    <article class="why-card"><div class="why-icon">02</div><h3>Eco-Friendly Travel</h3><p>Our platform promotes responsible tourism by supporting low-impact itineraries, local communities, and conservation-minded tour partners.</p></article>
-                    <article class="why-card"><div class="why-icon">03</div><h3>Flexible Booking</h3><p>Choose schedules that fit your trip, adjust plans with ease, and confirm your adventure through convenient and secure payment options.</p></article>
+                    <article class="why-card">
+                        <div class="why-icon">01</div>
+                        <h3>Handpicked Local Guides</h3>
+                        <p>We vet and curate every guide for local expertise, hospitality, and safety standards so each
+                            tour feels personal and trustworthy.</p>
+                    </article>
+                    <article class="why-card">
+                        <div class="why-icon">02</div>
+                        <h3>Eco-Friendly Travel</h3>
+                        <p>Our platform promotes responsible tourism by supporting low-impact itineraries, local
+                            communities, and conservation-minded tour partners.</p>
+                    </article>
+                    <article class="why-card">
+                        <div class="why-icon">03</div>
+                        <h3>Flexible Booking</h3>
+                        <p>Choose schedules that fit your trip, adjust plans with ease, and confirm your adventure
+                            through convenient and secure payment options.</p>
+                    </article>
                 </div>
             </div>
         </section>
+
 
         <section id="tours" class="tours">
             <div class="container">
-                <div class="section-head"><h2 class="hero-font">Featured Local Tours</h2><p>Choose from immersive, community-led experiences designed by people who call these places home.</p></div>
-                <div class="tours-grid">
-                    <article class="tour-card"><div class="tour-card-image" style="background-image:url('<?php echo e(asset('hero/batad.jpg')); ?>')"></div><div class="tour-card-body"><h1 class="tour-line">Batad Rice Terraces Heritage Walk</h1><p class="tour-line"><strong>Duration:</strong> 3 days</p><p class="tour-line"><strong>Price:</strong> PHP 3,200 per person</p><p class="tour-line"><strong>Location:</strong> Ifugao, Philippines</p><p class="tour-line"><strong>Led by:</strong> Mang Ramon from Batad</p><p class="tour-line"><strong>Description:</strong> Walk the 2,000-year-old terraces with Mang Ramon, a native guide who grew up here.</p></div></article>
-                    <article class="tour-card"><div class="tour-card-image" style="background-image:url('<?php echo e(asset('hero/davao.jpg')); ?>')"></div><div class="tour-card-body"><h1 class="tour-line">Davao Hidden Falls and Tribal Encounter</h1><p class="tour-line"><strong>Duration:</strong> 3 days</p><p class="tour-line"><strong>Price:</strong> PHP 3,500 per person</p><p class="tour-line"><strong>Location:</strong> Davao, Philippines</p><p class="tour-line"><strong>Led by:</strong> Ate Ligaya from Davao</p><p class="tour-line"><strong>Description:</strong> Visit waterfalls even locals keep secret. Share a meal with an indigenous guide family.</p></div></article>
-                    <article class="tour-card"><div class="tour-card-image" style="background-image:url('<?php echo e(asset('hero/elnido.jpg')); ?>')"></div><div class="tour-card-body"><h1 class="tour-line">El Nido Secret Lagoon Tour</h1><p class="tour-line"><strong>Duration:</strong> 2 days</p><p class="tour-line"><strong>Price:</strong> PHP 4,200 per person</p><p class="tour-line"><strong>Location:</strong> Palawan, Philippines</p><p class="tour-line"><strong>Led by:</strong> Kuya Jun from El Nido</p><p class="tour-line"><strong>Description:</strong> Skip crowded boats. Your guide knows the quiet lagoons and best snorkel spots.</p></div></article>
-                    <article class="tour-card"><div class="tour-card-image" style="background-image:url('<?php echo e(asset('hero/palawan.jpg')); ?>')"></div><div class="tour-card-body"><h1 class="tour-line">Palawan Coastal Village Experience</h1><p class="tour-line"><strong>Duration:</strong> 3 days</p><p class="tour-line"><strong>Price:</strong> PHP 3,800 per person</p><p class="tour-line"><strong>Location:</strong> Palawan, Philippines</p><p class="tour-line"><strong>Led by:</strong> Nanay Rosa from San Vicente</p><p class="tour-line"><strong>Description:</strong> Stay in a small fishing village and share home-cooked meals with locals.</p></div></article>
-                    <article class="tour-card"><div class="tour-card-image" style="background-image:url('<?php echo e(asset('hero/pangasinan.jpg')); ?>')"></div><div class="tour-card-body"><h1 class="tour-line">Pangasinan Hundred Islands Local Boat Tour</h1><p class="tour-line"><strong>Duration:</strong> 2 days</p><p class="tour-line"><strong>Price:</strong> PHP 2,900 per person</p><p class="tour-line"><strong>Location:</strong> Pangasinan, Philippines</p><p class="tour-line"><strong>Led by:</strong> Kuya Ben from Alaminos</p><p class="tour-line"><strong>Description:</strong> Explore caves and sandbars tourists often miss with a hometown boatman.</p></div></article>
-                    <article class="tour-card"><div class="tour-card-image" style="background-image:url('<?php echo e(asset('hero/puertoprincessa.jpg')); ?>')"></div><div class="tour-card-body"><h1 class="tour-line">Puerto Princesa Underground River and Local Lunch</h1><p class="tour-line"><strong>Duration:</strong> 2 days</p><p class="tour-line"><strong>Price:</strong> PHP 3,500 per person</p><p class="tour-line"><strong>Location:</strong> Palawan, Philippines</p><p class="tour-line"><strong>Led by:</strong> Tatay Rico from Puerto Princesa</p><p class="tour-line"><strong>Description:</strong> Beat the crowds and enjoy lunch prepared by a local family.</p></div></article>
+                <div class="section-head">
+                    <h2 class="hero-font">Featured Local Tours</h2>
+                    <p>Choose from immersive, community-led experiences designed by people who call these places home.
+                    </p>
                 </div>
+                <?php
+$__split = function ($name, $params = []) {
+    return [$name, $params];
+};
+[$__name, $__params] = $__split('explore-tours-feed', ['context' => 'home']);
+
+$__key = null;
+
+$__key ??= \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::generateKey('lw-2486926824-0', $__key);
+
+$__html = app('livewire')->mount($__name, $__params, $__key);
+
+echo $__html;
+
+unset($__html);
+unset($__key);
+unset($__name);
+unset($__params);
+unset($__split);
+if (isset($__slots)) unset($__slots);
+?>
             </div>
         </section>
 
+        <div class="request-modal-overlay" id="requestModal" aria-hidden="true">
+            <div class="request-modal" role="dialog" aria-modal="true" aria-labelledby="requestModalTitle">
+                <div class="request-modal-header">
+                    <h3 class="request-modal-title hero-font" id="requestModalTitle">Create Your Request</h3>
+                    <button class="request-modal-close" type="button" id="closeRequestModal" aria-label="Close">
+                        ×
+                    </button>
+                </div>
+
+                <form class="request-form-grid" action="#" method="post">
+                    <div class="request-form-field">
+                        <label for="requestTitle">Request Title</label>
+                        <input class="request-input" id="requestTitle" name="request_title" type="text" placeholder="e.g. 3-day island and food trip" required>
+                    </div>
+
+                    <div class="request-form-field">
+                        <label for="requestDuration">Duration</label>
+                        <input class="request-input" id="requestDuration" name="duration" type="text" placeholder="e.g. 3 days">
+                    </div>
+
+                    <div class="request-form-field">
+                        <label for="requestBudget">Budget</label>
+                        <input class="request-input" id="requestBudget" name="budget" type="text" placeholder="e.g. PHP 8,000">
+                    </div>
+
+                    <div class="request-form-field">
+                        <label for="requestLocation">Location</label>
+                        <input class="request-input" id="requestLocation" name="location" type="text" placeholder="e.g. Palawan">
+                    </div>
+
+                    <div class="request-form-field">
+                        <label for="requestDescription">Description</label>
+                        <textarea class="request-textarea" id="requestDescription" name="description" placeholder="Share your interests and what kind of local experience you want."></textarea>
+                    </div>
+
+                    <div class="request-form-actions">
+                        <button type="button" class="btn hero-cta-ghost" id="cancelRequestModal">Cancel</button>
+                        <button type="submit" class="btn hero-cta-primary">Submit Request</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <section id="tourist-tips" class="tips">
             <div class="container">
-                <div class="section-head"><h2 class="hero-font">Tourist Tips</h2><p>Short, honest reads. No fluff. Just what you actually need to know.</p></div>
+                <div class="section-head">
+                    <h2 class="hero-font">Tourist Tips</h2>
+                    <p>Short, honest reads. No fluff. Just what you actually need to know.</p>
+                </div>
                 <div class="tips-grid">
-                    <article class="tips-card"><h3>How to NOT Get Scammed as a Tourist in the Philippines</h3><p>Red flags to watch out for. What prices should actually look like. And why booking a local guide is safer than going alone.</p><p class="tips-meta">4 min read</p><a class="tips-link" href="#">Read -></a></article>
-                    <article class="tips-card"><h3>How to Choose a Tour Package When You Have No Idea Where to Go</h3><p>Step 1: Admit you are confused. Step 2: Pick a vibe (beach, mountain, food). Step 3: Let a local guide take it from there.</p><p class="tips-meta">3 min read</p><a class="tips-link" href="#">Read -></a></article>
-                    <article class="tips-card"><h3>Why Booking With a Local Guide is Better Than a Big Tour Company</h3><p>Money stays in the community. You get real stories, not scripts. The food is better when a local picks the spot.</p><p class="tips-meta">5 min read</p><a class="tips-link" href="#">Read -></a></article>
+                    <article class="tips-card">
+                        <h3>How to NOT Get Scammed as a Tourist in the Philippines</h3>
+                        <p>Red flags to watch out for. What prices should actually look like. And why booking a local
+                            guide is safer than going alone.</p>
+                        <p class="tips-meta">4 min read</p><a class="tips-link" href="#">Read -></a>
+                    </article>
+                    <article class="tips-card">
+                        <h3>How to Choose a Tour Package When You Have No Idea Where to Go</h3>
+                        <p>Step 1: Admit you are confused. Step 2: Pick a vibe (beach, mountain, food). Step 3: Let a
+                            local guide take it from there.</p>
+                        <p class="tips-meta">3 min read</p><a class="tips-link" href="#">Read -></a>
+                    </article>
+                    <article class="tips-card">
+                        <h3>Why Booking With a Local Guide is Better Than a Big Tour Company</h3>
+                        <p>Money stays in the community. You get real stories, not scripts. The food is better when a
+                            local picks the spot.</p>
+                        <p class="tips-meta">5 min read</p><a class="tips-link" href="#">Read -></a>
+                    </article>
                 </div>
                 <div class="tips-footer"><a class="tips-button" href="#">View all tips -></a></div>
             </div>
@@ -1399,16 +1793,22 @@
         <section class="roles-cta">
             <div class="container roles-cta-grid">
                 <article class="roles-cta-card">
-                    <img class="roles-cta-media" src="<?php echo e(asset('images/tourist.png')); ?>" alt="Tourist looking for local guidance">
+                    <img class="roles-cta-media" src="<?php echo e(asset('images/tourist.png')); ?>"
+                        alt="Tourist looking for local guidance">
                     <h3 class="hero-font">I am a confused tourist</h3>
-                    <p>I want to explore the Philippines but do not know where to start. I want real spots, real food, and a local who knows the way.</p>
-                    <a class="roles-cta-button primary" href="<?php echo e(route('signup.start')); ?>">Match me with a local guide -></a>
+                    <p>I want to explore the Philippines but do not know where to start. I want real spots, real food,
+                        and a local who knows the way.</p>
+                    <a class="roles-cta-button primary" href="<?php echo e(route('signup.start')); ?>">Match me with a local
+                        guide -></a>
                 </article>
                 <article class="roles-cta-card">
-                    <img class="roles-cta-media" src="<?php echo e(asset('images/tourguide.jpg')); ?>" alt="Local guide showcasing hometown culture">
+                    <img class="roles-cta-media" src="<?php echo e(asset('images/tourguide.jpg')); ?>"
+                        alt="Local guide showcasing hometown culture">
                     <h3 class="hero-font">I am a local guide</h3>
-                    <p>I know my hometown like the back of my hand. I want to share my stories and hidden spots and earn from what I love.</p>
-                    <a class="roles-cta-button ghost" href="<?php echo e(route('signup.start')); ?>">Apply to showcase my hometown -></a>
+                    <p>I know my hometown like the back of my hand. I want to share my stories and hidden spots and earn
+                        from what I love.</p>
+                    <a class="roles-cta-button ghost" href="<?php echo e(route('signup.start')); ?>">Apply to showcase my
+                        hometown -></a>
                 </article>
             </div>
         </section>
@@ -1419,11 +1819,14 @@
             <div class="footer-top">
                 <section class="footer-col">
                     <div class="footer-brand-head">
-                        <img class="footer-brand-logo" src="<?php echo e(asset('images/tribaltours_icon.png')); ?>" alt="Trbltours">
+                        <img class="footer-brand-logo" src="<?php echo e(asset('images/tribaltours_icon.png')); ?>"
+                            alt="Trbltours">
                         <h3 class="footer-brand-name hero-font">trbTours</h3>
                     </div>
-                    <p class="footer-about">"Helping confused tourists find real locals. Helping locals earn from their hometown pride."</p>
-                    <p class="footer-about">Trbltours is not a big corporation. We are a small team based in the Philippines, connecting travelers to local guides who deserve to be seen.</p>
+                    <p class="footer-about">"Helping confused tourists find real locals. Helping locals earn from their
+                        hometown pride."</p>
+                    <p class="footer-about">Trbltours is not a big corporation. We are a small team based in the
+                        Philippines, connecting travelers to local guides who deserve to be seen.</p>
                     <p class="footer-about">Made with love and pride for every barrio, province, and island.</p>
                     <div class="footer-social-icons">
                         <a href="<?php echo e(url('/social/facebook')); ?>" aria-label="Facebook">f</a>
@@ -1446,7 +1849,8 @@
                     <h3>For Local Guides</h3>
                     <ul class="footer-list">
                         <li><a href="<?php echo e(url('/guides/apply')); ?>">Apply to showcase your hometown</a></li>
-                        <li><a href="<?php echo e(url('/guides/requirements')); ?>">Guide requirements (just be local, really)</a></li>
+                        <li><a href="<?php echo e(url('/guides/requirements')); ?>">Guide requirements (just be local, really)</a>
+                        </li>
                         <li><a href="<?php echo e(url('/guides/payouts')); ?>">How payouts work</a></li>
                         <li><a href="<?php echo e(url('/guides/success-stories')); ?>">Guide success stories</a></li>
                         <li><a href="<?php echo e(url('/guides/resources')); ?>">Free guide resources (photo tips, etc.)</a></li>
@@ -1457,16 +1861,42 @@
                     <ul class="footer-list">
                         <li><a href="<?php echo e(url('/blog/why-book-with-locals')); ?>">Why book with locals?</a></li>
                         <li><a href="<?php echo e(url('/blog/how-to-spot-tourist-traps')); ?>">How to spot tourist traps</a></li>
-                        <li><a href="<?php echo e(url('/blog/first-tour-expectations')); ?>">What to expect on your first tour</a></li>
+                        <li><a href="<?php echo e(url('/blog/first-tour-expectations')); ?>">What to expect on your first tour</a>
+                        </li>
                         <li><a href="<?php echo e(url('/blog/responsible-tourism-guide')); ?>">Responsible tourism guide</a></li>
                         <li><a href="<?php echo e(url('/blog')); ?>">All blog posts</a></li>
                     </ul>
                 </section>
                 <section class="footer-col">
                     <h3>Get in Touch</h3>
-                    <div class="footer-contact-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"></path><path d="m22 6-10 7L2 6"></path></svg><div><div>Email</div><a href="mailto:support@trbltours.com">support@trbltours.com</a></div></div>
-                    <div class="footer-contact-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.9.33 1.78.62 2.62a2 2 0 0 1-.45 2.11L8 9.89a16 16 0 0 0 6 6l1.44-1.28a2 2 0 0 1 2.11-.45c.84.29 1.72.5 2.62.62A2 2 0 0 1 22 16.92z"></path></svg><div><div>Phone</div><a href="tel:+639123456789">+63 912 345 6789</a></div></div>
-                    <div class="footer-contact-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg><div><div>Location</div><a href="<?php echo e(url('/contact')); ?>">Cebu, Philippines</a></div></div>
+                    <div class="footer-contact-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M4 4h16v16H4z"></path>
+                            <path d="m22 6-10 7L2 6"></path>
+                        </svg>
+                        <div>
+                            <div>Email</div><a href="mailto:support@trbltours.com">support@trbltours.com</a>
+                        </div>
+                    </div>
+                    <div class="footer-contact-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path
+                                d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.9.33 1.78.62 2.62a2 2 0 0 1-.45 2.11L8 9.89a16 16 0 0 0 6 6l1.44-1.28a2 2 0 0 1 2.11-.45c.84.29 1.72.5 2.62.62A2 2 0 0 1 22 16.92z">
+                            </path>
+                        </svg>
+                        <div>
+                            <div>Phone</div><a href="tel:+639123456789">+63 912 345 6789</a>
+                        </div>
+                    </div>
+                    <div class="footer-contact-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"></path>
+                            <circle cx="12" cy="10" r="3"></circle>
+                        </svg>
+                        <div>
+                            <div>Location</div><a href="<?php echo e(url('/contact')); ?>">Cebu, Philippines</a>
+                        </div>
+                    </div>
                 </section>
                 <section class="footer-col footer-purpose">
                     <h4>Travel with Purpose</h4>
@@ -1481,7 +1911,8 @@
 
             <div class="footer-row">
                 <p>© 2025 Trbltours. All rights reserved.</p>
-                <p>Trbltours is not a big corporation. We are a small team based in the Philippines, connecting travelers to local guides who deserve to be seen.</p>
+                <p>Trbltours is not a big corporation. We are a small team based in the Philippines, connecting
+                    travelers to local guides who deserve to be seen.</p>
                 <p>Made with love and pride for every barrio, province, and island.</p>
             </div>
 
@@ -1542,6 +1973,54 @@
 
             initFadeCarousel('heroCarousel', '.hero-slide', 4000);
             initFadeCarousel('favoritesCarousel', '.favorite-card', 1800);
+
+            const openRequestModalButton = document.getElementById('openRequestModal');
+            const requestModal = document.getElementById('requestModal');
+            const closeRequestModalButton = document.getElementById('closeRequestModal');
+            const cancelRequestModalButton = document.getElementById('cancelRequestModal');
+            const requestForm = requestModal?.querySelector('form');
+
+            if (openRequestModalButton && requestModal && closeRequestModalButton && cancelRequestModalButton) {
+                const setRequestModalOpen = (isOpen) => {
+                    requestModal.classList.toggle('open', isOpen);
+                    requestModal.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+                    document.body.style.overflow = isOpen ? 'hidden' : '';
+                };
+
+                openRequestModalButton.addEventListener('click', () => {
+                    setRequestModalOpen(true);
+                });
+
+                closeRequestModalButton.addEventListener('click', () => {
+                    setRequestModalOpen(false);
+                });
+
+                cancelRequestModalButton.addEventListener('click', () => {
+                    setRequestModalOpen(false);
+                });
+
+                requestModal.addEventListener('click', (event) => {
+                    if (event.target === requestModal) {
+                        setRequestModalOpen(false);
+                    }
+                });
+
+                document.addEventListener('keydown', (event) => {
+                    if (event.key === 'Escape') {
+                        setRequestModalOpen(false);
+                    }
+                });
+
+                requestForm?.addEventListener('submit', (event) => {
+                    event.preventDefault();
+
+                    <?php if(auth()->guard()->guest()): ?>
+                        window.location.href = '<?php echo e(route('signup.start')); ?>';
+                    <?php else: ?>
+                        setRequestModalOpen(false);
+                    <?php endif; ?>
+                });
+            }
 
             const locationTrigger = document.getElementById('locationTrigger');
             const accommodationInput = document.getElementById('accommodation');
@@ -1639,7 +2118,8 @@
             const checkoutDate = document.getElementById('checkoutDate');
             const stayDuration = document.getElementById('stayDuration');
 
-            if (anytimeTrigger && anytimeToggle && anytimeLabel && dateDropdown && checkinDate && checkoutDate && stayDuration) {
+            if (anytimeTrigger && anytimeToggle && anytimeLabel && dateDropdown && checkinDate && checkoutDate &&
+                stayDuration) {
                 const setDateOpenState = (isOpen) => {
                     dateDropdown.classList.toggle('open', isOpen);
                     anytimeToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
@@ -1837,6 +2317,8 @@
             }
         })();
     </script>
+    <?php echo \Livewire\Mechanisms\FrontendAssets\FrontendAssets::scripts(); ?>
+
 </body>
 
 </html>

@@ -227,6 +227,7 @@
     @post-created.window="composeBoxOpen = false"
 >
     <section class="mx-auto w-full max-w-6xl px-4 pt-6 sm:px-6 lg:px-8">
+        <h1 class="sr-only">Guide Profile</h1>
         <article class="overflow-hidden rounded-lg border border-[#d4a563] bg-white shadow-md">
             <div class="relative h-56 w-full bg-gradient-to-r from-[#7a8f3a] to-[#556b2f]">
                 @if ($guide['cover_photo_path'] !== '')

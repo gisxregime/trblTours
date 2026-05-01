@@ -6,6 +6,8 @@ use Database\Factories\TourFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Tour extends Model
 {
@@ -94,5 +96,20 @@ class Tour extends Model
     public function marketplaceGuide(): BelongsTo
     {
         return $this->belongsTo(User::class, 'guide_id');
+    }
+
+    public function likedByUsers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'tour_likes')->withTimestamps();
+    }
+
+    public function bookings(): HasMany
+    {
+        return $this->hasMany(Booking::class);
+    }
+
+    public function bookingRequests(): HasMany
+    {
+        return $this->hasMany(BookingRequest::class);
     }
 }

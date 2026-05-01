@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\ExploreToursFeed;
 use App\Models\BookingRequest;
 use App\Models\Tour;
 use App\Models\User;
@@ -40,13 +41,17 @@ it('shows tour listings and request posts on the tourist feed', function () {
     actingAs($tourist)
         ->get(route('dashboard.tourist'))
         ->assertSuccessful()
-        ->assertSee('Create Request Post')
+        ->assertSee('Explore Tours')
+        ->assertSee('My Posts')
+        ->assertSee('Create Tour Request')
+        ->assertSee('Create Your Request')
+        ->assertSee('Enter request title')
+        ->assertSee('href="'.url('/').'"', false)
         ->assertSee('Bohol Countryside Adventure')
-        ->assertSee('Book Now')
-        ->assertSee('View Details');
+        ->assertSeeLivewire(ExploreToursFeed::class);
 });
 
-it('filters the tourist feed by post type', function () {
+it('shows filtering controls on the tourist feed', function () {
     $tourist = User::factory()->create([
         'role' => 'tourist',
         'status' => 'active',
@@ -72,13 +77,10 @@ it('filters the tourist feed by post type', function () {
     ]);
 
     actingAs($tourist)
-        ->get(route('dashboard.tourist', ['post_type' => 'tour_listings']))
+        ->get(route('dashboard.tourist'))
         ->assertSuccessful()
-        ->assertSee('Book Now')
-        ->assertDontSee('View Details');
-
-    actingAs($tourist)
-        ->get(route('dashboard.tourist', ['post_type' => 'request_posts']))
-        ->assertSuccessful()
-        ->assertSee('View Details');
+        ->assertSee('Location')
+        ->assertSee('Sort By')
+        ->assertSee('Apply')
+        ->assertSee('Reset');
 });

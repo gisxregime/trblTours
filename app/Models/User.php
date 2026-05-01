@@ -7,12 +7,13 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'full_name', 'email', 'role', 'status', 'region', 'specialty', 'bio', 'password', 'otp_code', 'otp_expires_at', 'email_verified_at'])]
+#[Fillable(['name', 'full_name', 'email', 'role', 'status', 'region', 'specialty', 'bio', 'profile_photo_path', 'cover_photo_path', 'password', 'otp_code', 'otp_expires_at', 'email_verified_at'])]
 #[Hidden(['password', 'remember_token', 'otp_code'])]
 class User extends Authenticatable
 {
@@ -53,6 +54,11 @@ class User extends Authenticatable
         return $this->hasMany(Tour::class, 'guide_id');
     }
 
+    public function likedTours(): BelongsToMany
+    {
+        return $this->belongsToMany(Tour::class, 'tour_likes')->withTimestamps();
+    }
+
     public function guideAvailabilities(): HasMany
     {
         return $this->hasMany(GuideAvailability::class, 'guide_id');
@@ -81,6 +87,16 @@ class User extends Authenticatable
     public function guideStories(): HasMany
     {
         return $this->hasMany(GuideStory::class, 'guide_id');
+    }
+
+    public function touristRequests(): HasMany
+    {
+        return $this->hasMany(TouristRequest::class, 'tourist_id');
+    }
+
+    public function requestComments(): HasMany
+    {
+        return $this->hasMany(Comment::class, 'user_id');
     }
 
     public function guideEarnings(): HasMany
