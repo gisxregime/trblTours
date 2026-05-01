@@ -453,18 +453,18 @@
                                         <span class="text-[11px] font-semibold text-[#877a6a]">Price <span class="text-[16px] font-bold text-[#5d5142]">₱ {{ number_format($price, 2) }}</span></span>
                                     </div>
 
-                                    <a href="{{ route('tours.show', ['tour' => $listing, 'from' => 'dashboard']) }}" class="mt-3 flex w-full min-h-[2.25rem] items-center justify-center rounded-lg border border-[#4f7740] bg-[#5f8a46] px-2 py-2 text-xs font-semibold text-[#f7fff4] transition hover:bg-[#4f7740]">
+                                    <a href="{{ route('tours.show', ['tour' => $listing, 'from' => 'dashboard']) }}" class="mt-3 inline-flex h-10 w-full items-center justify-center rounded-lg border border-[#4f7740] bg-[#5f8a46] px-2 text-center text-xs font-semibold text-[#f7fff4] transition hover:bg-[#4f7740]">
                                         Open Full Listing Page
                                     </a>
 
-                                    <div class="mt-3 grid grid-cols-3 gap-2">
-                                        <a href="{{ route('dashboard.guide.tours', ['edit' => $listing->id]) }}" class="flex w-full min-h-[2.25rem] items-center justify-center rounded-lg border border-[#d4a563]/45 bg-[#fff7ec] px-2 py-2 text-xs font-semibold text-[#7a5532] transition hover:bg-[#f7ead7]">Edit</a>
-                                        <form method="POST" action="{{ route('dashboard.guide.listings.destroy', $listing) }}" class="w-full">
+                                    <div class="mt-3 grid grid-cols-3 items-stretch gap-2">
+                                        <a href="{{ route('dashboard.guide.tours', ['edit' => $listing->id]) }}" class="inline-flex h-10 w-full items-center justify-center rounded-lg border border-[#d4a563]/45 bg-[#fff7ec] px-2 text-center text-xs font-semibold text-[#7a5532] transition hover:bg-[#f7ead7]">Edit</a>
+                                        <form method="POST" action="{{ route('dashboard.guide.listings.destroy', $listing) }}" class="h-10 w-full">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="flex w-full min-h-[2.25rem] items-center justify-center rounded-lg border border-[#e1b3ad] bg-[#fdf0ee] px-2 py-2 text-xs font-semibold text-[#a4554d] transition hover:bg-[#f9e3e0]">Delete</button>
+                                            <button type="submit" class="inline-flex h-full w-full items-center justify-center rounded-lg border border-[#e1b3ad] bg-[#fdf0ee] px-2 text-center text-xs font-semibold text-[#a4554d] transition hover:bg-[#f9e3e0]">Delete</button>
                                         </form>
-                                        <a href="{{ route('dashboard.guide.requests') }}" class="flex w-full min-h-[2.25rem] items-center justify-center rounded-lg border border-[#4f7740] bg-[#5f8a46] px-2 py-2 text-xs font-semibold text-[#f7fff4] transition hover:bg-[#4f7740]">View Bookings</a>
+                                        <a href="{{ route('dashboard.guide.requests') }}" class="inline-flex h-10 w-full items-center justify-center rounded-lg border border-[#4f7740] bg-[#5f8a46] px-2 text-center text-xs font-semibold text-[#f7fff4] transition hover:bg-[#4f7740]">View Bookings</a>
                                     </div>
                                 </div>
                             </article>
