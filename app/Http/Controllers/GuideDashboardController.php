@@ -11,7 +11,6 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Schema;
 
 class GuideDashboardController extends Controller
@@ -123,8 +122,7 @@ class GuideDashboardController extends Controller
             'included' => ['nullable', 'array', 'max:20'],
             'included.*' => ['string', 'max:120'],
             'exclusions_text' => ['nullable', 'string', 'max:1200'],
-            'available_days' => ['nullable', 'array', 'max:7'],
-            'available_days.*' => ['in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday'],
+            'booking_date' => ['required', 'date', 'after_or_equal:today'],
             'start_time' => ['nullable', 'date_format:H:i'],
             'end_time' => ['nullable', 'date_format:H:i'],
             'instant_book' => ['nullable', 'boolean'],
@@ -161,12 +159,6 @@ class GuideDashboardController extends Controller
             ->unique()
             ->values();
 
-        $availableDays = collect($validated['available_days'] ?? [])
-            ->map(fn (mixed $value): string => trim((string) $value))
-            ->filter(fn (string $value): bool => $value !== '')
-            ->unique()
-            ->values();
-
         $itinerarySegments = [
             'Pickup Point' => $validated['itinerary_pickup'] ?? null,
             'Stop 1' => $validated['itinerary_stop_1'] ?? null,
@@ -189,7 +181,7 @@ class GuideDashboardController extends Controller
 
         $priceType = (string) $validated['price_type'];
         $basePrice = (float) $validated['base_price'];
-        $availableOn = $this->nextAvailableDate($availableDays->all());
+        $bookingDate = (string) $validated['booking_date'];
         $normalizedDifficulty = $this->normalizeDifficulty((string) ($validated['difficulty'] ?? 'Easy'));
 
         $metadata = [
@@ -200,7 +192,7 @@ class GuideDashboardController extends Controller
             'weekend_rate' => isset($validated['weekend_rate']) ? (float) $validated['weekend_rate'] : null,
             'holiday_rate' => isset($validated['holiday_rate']) ? (float) $validated['holiday_rate'] : null,
             'languages_spoken' => $languagesSpoken->all(),
-            'available_days' => $availableDays->all(),
+            'booking_date' => $bookingDate,
             'start_time' => $validated['start_time'] ?? null,
             'end_time' => $validated['end_time'] ?? null,
             'instant_book' => $request->boolean('instant_book'),
@@ -242,7 +234,7 @@ class GuideDashboardController extends Controller
             'full_itinerary' => $fullItinerary,
             'inclusions' => $inclusions,
             'exclusions' => $validated['exclusions_text'] ?? null,
-            'available_on' => $availableOn,
+            'available_on' => $bookingDate,
             'pricing_tiers' => $metadata,
             'blackout_dates' => [],
             'gallery_images' => $galleryImages,
@@ -336,20 +328,6 @@ class GuideDashboardController extends Controller
         $unit = str_contains(strtolower($duration), 'day') ? 'days' : 'hours';
 
         return [$hours, $unit];
-    }
-
-    private function nextAvailableDate(array $availableDays): ?string
-    {
-        if ($availableDays === []) {
-            return null;
-        }
-
-        $firstDay = trim((string) $availableDays[0]);
-        if ($firstDay === '') {
-            return null;
-        }
-
-        return Carbon::parse('next '.$firstDay)->toDateString();
     }
 
     private function normalizeDifficulty(string $difficulty): string
