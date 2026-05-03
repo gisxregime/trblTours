@@ -1559,8 +1559,8 @@
     <header class="site-header">
         <div class="container header-inner">
             <a class="brand" href="<?php echo e(url('/')); ?>">
-                <img class="brand-logo" src="<?php echo e(asset('images/tribaltours_icon.png')); ?>" alt="Trbltours">
-                <span class="brand-name brand-font">Trbltours</span>
+                <img class="brand-logo" src="<?php echo e(asset('images/tribaltours_icon.png')); ?>" alt="TrblTours">
+                <span class="brand-name brand-font">TrblTours</span>
             </a>
 
             <nav class="header-nav" aria-label="Primary navigation">
