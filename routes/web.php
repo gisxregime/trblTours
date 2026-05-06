@@ -19,7 +19,9 @@ use App\Livewire\Guide\GuideBookingRequests;
 use App\Livewire\Guide\GuideMessages;
 use App\Livewire\Guide\GuideProfile;
 use App\Livewire\Guide\GuideTours;
+use App\Models\GuideAvailability;
 use App\Models\Tour;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 
@@ -44,10 +46,46 @@ Route::get('/tours/{tour}', function (Tour $tour) {
         $isTourLiked = $currentUser->likedTours()->whereKey($tour->id)->exists();
     }
 
+    $availabilityOptions = collect();
+    $hasGuideAvailabilityRules = false;
+
+    if (Schema::hasTable('guide_availability') && $tour->guide_id !== null) {
+        $availabilityOptions = GuideAvailability::query()
+            ->where('guide_id', (int) $tour->guide_id)
+            ->whereDate('date', '>=', now()->toDateString())
+            ->orderBy('date')
+            ->limit(120)
+            ->get(['date', 'status', 'note', 'special_price']);
+
+        $hasGuideAvailabilityRules = $availabilityOptions->isNotEmpty();
+    }
+
+    if ($availabilityOptions->isEmpty()) {
+        $defaultDates = collect([
+            $tour->available_on ? Carbon::parse((string) $tour->available_on)->toDateString() : null,
+            now()->addDays(1)->toDateString(),
+            now()->addDays(2)->toDateString(),
+            now()->addDays(3)->toDateString(),
+            now()->addDays(7)->toDateString(),
+            now()->addDays(14)->toDateString(),
+        ])->filter();
+
+        $availabilityOptions = $defaultDates
+            ->unique()
+            ->map(fn (string $date): array => [
+                'date' => $date,
+                'status' => 'available',
+                'note' => null,
+                'special_price' => null,
+            ]);
+    }
+
     return view('tours.show', [
         'tour' => $tour,
         'source' => $source,
         'isTourLiked' => $isTourLiked,
+        'availabilityOptions' => $availabilityOptions,
+        'hasGuideAvailabilityRules' => $hasGuideAvailabilityRules,
     ]);
 })->name('tours.show');
 
@@ -74,6 +112,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/dashboard/my-posts/{touristRequest}/comments/{comment}/select-guide', [DashboardMyPostsController::class, 'selectGuide'])->name('dashboard.my-posts.comments.select-guide');
     Route::post('/dashboard/my-posts/{touristRequest}/comments/{comment}/report', [DashboardMyPostsController::class, 'reportComment'])->name('dashboard.my-posts.comments.report');
     Route::get('/dashboard/my-bookings', [DashboardBookingsController::class, 'index'])->name('dashboard.my-bookings');
+    Route::patch('/dashboard/my-bookings/{bookingRequest}/cancel', [DashboardBookingsController::class, 'cancel'])->name('dashboard.my-bookings.cancel');
     Route::post('/dashboard/my-bookings/{booking}/rating', [DashboardBookingsController::class, 'storeRating'])->name('dashboard.my-bookings.rating');
     Route::get('/dashboard/likes', [DashboardLikesController::class, 'index'])->name('dashboard.likes');
     Route::post('/dashboard/likes/tours/{tour}/toggle', [DashboardLikesController::class, 'toggle'])->name('dashboard.likes.toggle');

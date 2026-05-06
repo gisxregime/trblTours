@@ -1,8 +1,10 @@
 <?php
 
 use App\Livewire\Guide\GuideBookingRequests;
+use App\Models\Booking;
 use App\Models\BookingRequest;
 use App\Models\Tour;
+use App\Models\TourReview;
 use App\Models\User;
 use Livewire\Livewire;
 
@@ -99,4 +101,66 @@ it('allows guide to decline a pending booking request with reason', function () 
 
     expect($request->status)->toBe('declined')
         ->and($request->decline_reason)->toBe('Unavailable due to existing booking');
+});
+
+it('shows latest tourist reviews in guide booking requests panel', function () {
+    $guide = User::factory()->create([
+        'role' => 'guide',
+        'full_name' => 'Marco Del Rosario',
+    ]);
+
+    $tourist = User::factory()->create([
+        'role' => 'tourist',
+        'full_name' => 'Clara Lim',
+    ]);
+
+    $tour = Tour::query()->create([
+        'guide_id' => $guide->id,
+        'title' => 'Iloilo Heritage Flavor Tour',
+        'region' => 'Western Visayas',
+        'summary' => str_repeat('Local food crawl with museum and river walk.', 3),
+        'duration_label' => 'Half-day',
+        'price_per_person' => 2100,
+        'is_featured' => true,
+        'available_on' => now()->addDays(5)->format('Y-m-d'),
+    ]);
+
+    $bookingRequest = BookingRequest::query()->create([
+        'tourist_id' => $tourist->id,
+        'guide_id' => $guide->id,
+        'tour_id' => $tour->id,
+        'requested_date' => now()->subDays(2)->format('Y-m-d'),
+        'group_size' => 2,
+        'total_price' => 4200,
+        'status' => 'accepted',
+    ]);
+
+    $booking = Booking::query()->create([
+        'booking_request_id' => $bookingRequest->id,
+        'tourist_id' => $tourist->id,
+        'guide_id' => $guide->id,
+        'tour_id' => $tour->id,
+        'booking_date' => now()->subDays(2)->format('Y-m-d'),
+        'group_size' => 2,
+        'total_amount' => 4200,
+        'commission_amount' => 420,
+        'net_amount' => 3780,
+        'status' => 'completed',
+    ]);
+
+    TourReview::query()->create([
+        'booking_id' => $booking->id,
+        'tourist_id' => $tourist->id,
+        'guide_id' => $guide->id,
+        'tour_id' => $tour->id,
+        'rating' => 5,
+        'review' => 'Fantastic trip and super friendly guiding.',
+        'is_featured' => false,
+    ]);
+
+    actingAs($guide);
+
+    Livewire::test(GuideBookingRequests::class)
+        ->assertSee('Latest Tourist Reviews')
+        ->assertSee('Fantastic trip and super friendly guiding.');
 });

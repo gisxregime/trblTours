@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\BookingRequest;
+use App\Models\GuideAvailability;
 use App\Models\Tour;
 use App\Models\User;
 use App\Notifications\TourActivityNotification;
@@ -10,6 +11,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 
 class BookingController extends Controller
 {
@@ -41,13 +43,44 @@ class BookingController extends Controller
             return back()->withErrors(['tour_id' => $errorMessage])->withInput();
         }
 
-        $pricePerPerson = (float) ($tour->price_per_person ?? $tour->price ?? $tour->base_price ?? 0);
+        $requestedDate = (string) $validated['booking_date'];
+        $availability = null;
+
+        if (Schema::hasTable('guide_availability')) {
+            $availabilityQuery = GuideAvailability::query()
+                ->where('guide_id', $guideId)
+                ->whereDate('date', '>=', now()->toDateString());
+
+            $hasConfiguredAvailability = (clone $availabilityQuery)->exists();
+
+            if ($hasConfiguredAvailability) {
+                $availability = (clone $availabilityQuery)
+                    ->whereDate('date', $requestedDate)
+                    ->first();
+
+                $isUnavailable = $availability === null || $availability->status === 'fully_booked';
+
+                if ($isUnavailable) {
+                    $errorMessage = 'Selected date is unavailable. Please choose a different date from the availability list.';
+
+                    if ($request->expectsJson()) {
+                        return response()->json([
+                            'message' => $errorMessage,
+                        ], 422);
+                    }
+
+                    return back()->withErrors(['booking_date' => $errorMessage])->withInput();
+                }
+            }
+        }
+
+        $pricePerPerson = (float) ($availability?->special_price ?? ($tour->price_per_person ?? $tour->price ?? $tour->base_price ?? 0));
 
         $bookingRequest = BookingRequest::query()->create([
             'tourist_id' => $user->id,
             'guide_id' => $guideId,
             'tour_id' => $tour->id,
-            'requested_date' => $validated['booking_date'],
+            'requested_date' => $requestedDate,
             'group_size' => (int) $validated['group_size'],
             'total_price' => $pricePerPerson * (int) $validated['group_size'],
             'special_requests' => $validated['special_requests'] ?? null,

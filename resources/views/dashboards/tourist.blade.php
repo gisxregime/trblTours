@@ -313,10 +313,6 @@
                 </nav>
 
                 <div class="relative flex items-center gap-2" @click.outside="menuOpen = false">
-                    <span class="inline-flex items-center gap-1 rounded-full border border-[#e3dbc9] bg-[#fffdf7] px-2.5 py-1 text-[10px] font-semibold text-[#7b705d]">
-                        <span class="h-1.5 w-1.5 rounded-full bg-[#9db46f]"></span>
-                        Live
-                    </span>
 
                     <livewire:tourist-notifications />
 

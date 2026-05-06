@@ -8,6 +8,7 @@ use App\Models\User;
 use function Pest\Laravel\actingAs;
 use function Pest\Laravel\assertDatabaseHas;
 use function Pest\Laravel\get;
+use function Pest\Laravel\patch;
 use function Pest\Laravel\post;
 
 test('tourist dropdown bookings link points to my bookings page', function () {
@@ -107,7 +108,7 @@ test('tourist can submit rating for completed booking', function () {
     ]);
 
     $response
-        ->assertRedirect(route('dashboard.my-bookings'))
+        ->assertRedirect(route('dashboard.my-bookings', ['focus' => $bookingRequest->id]))
         ->assertSessionHas('status', 'Thanks for rating your completed booking.');
 
     assertDatabaseHas('tour_reviews', [
@@ -116,6 +117,84 @@ test('tourist can submit rating for completed booking', function () {
         'guide_id' => $guide->id,
         'tour_id' => $tour->id,
         'rating' => 5,
+    ]);
+});
+
+test('tourist can cancel a pending booking request from my bookings page', function () {
+    $tourist = User::factory()->create(['role' => 'tourist']);
+    $guide = User::factory()->create(['role' => 'guide']);
+
+    $tour = Tour::query()->create([
+        'guide_id' => $guide->id,
+        'title' => 'Siargao Surf Coastline',
+        'region' => 'Caraga',
+        'summary' => str_repeat('Surf and beach stop adventure with a local guide. ', 3),
+        'duration_label' => 'Full-day',
+        'price_per_person' => 3900,
+        'is_featured' => true,
+        'available_on' => now()->addDays(4)->format('Y-m-d'),
+    ]);
+
+    $bookingRequest = BookingRequest::query()->create([
+        'tourist_id' => $tourist->id,
+        'guide_id' => $guide->id,
+        'tour_id' => $tour->id,
+        'requested_date' => now()->addDays(6)->format('Y-m-d'),
+        'group_size' => 2,
+        'total_price' => 7800,
+        'status' => 'pending',
+    ]);
+
+    actingAs($tourist);
+
+    $response = patch(route('dashboard.my-bookings.cancel', $bookingRequest));
+
+    $response
+        ->assertRedirect(route('dashboard.my-bookings'))
+        ->assertSessionHas('status', 'Pending booking cancelled successfully.');
+
+    assertDatabaseHas('booking_requests', [
+        'id' => $bookingRequest->id,
+        'status' => 'cancelled',
+    ]);
+});
+
+test('tourist cannot cancel a booked booking request', function () {
+    $tourist = User::factory()->create(['role' => 'tourist']);
+    $guide = User::factory()->create(['role' => 'guide']);
+
+    $tour = Tour::query()->create([
+        'guide_id' => $guide->id,
+        'title' => 'Bohol Chocolate Hills Day Tour',
+        'region' => 'Central Visayas',
+        'summary' => str_repeat('Countryside ride and heritage stop experience. ', 3),
+        'duration_label' => 'Full-day',
+        'price_per_person' => 2600,
+        'is_featured' => true,
+        'available_on' => now()->addDays(4)->format('Y-m-d'),
+    ]);
+
+    $bookingRequest = BookingRequest::query()->create([
+        'tourist_id' => $tourist->id,
+        'guide_id' => $guide->id,
+        'tour_id' => $tour->id,
+        'requested_date' => now()->addDays(6)->format('Y-m-d'),
+        'group_size' => 2,
+        'total_price' => 5200,
+        'status' => 'accepted',
+    ]);
+
+    actingAs($tourist);
+
+    $response = patch(route('dashboard.my-bookings.cancel', $bookingRequest));
+
+    $response
+        ->assertRedirect()
+        ->assertSessionHasErrors('booking');
+
+    assertDatabaseHas('booking_requests', [
+        'id' => $bookingRequest->id,
+        'status' => 'accepted',
     ]);
 });
 

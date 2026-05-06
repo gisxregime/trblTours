@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\GuideAvailability;
 use App\Models\Tour;
 use App\Models\User;
 use App\Notifications\TourActivityNotification;
@@ -125,4 +126,93 @@ test('non tourist cannot submit booking request', function () {
     ]);
 
     $response->assertForbidden();
+});
+
+test('tourist cannot submit booking on unavailable date when guide availability is configured', function () {
+    Notification::fake();
+
+    $tourist = User::factory()->create(['role' => 'tourist']);
+    $guide = User::factory()->create(['role' => 'guide']);
+
+    $tour = Tour::query()->create([
+        'guide_id' => $guide->id,
+        'title' => 'Camiguin Volcano Loop',
+        'region' => 'Northern Mindanao',
+        'summary' => str_repeat('Scenic loop with spring stops and local food.', 3),
+        'duration_label' => 'Full-day',
+        'price_per_person' => 3100,
+        'is_featured' => true,
+        'available_on' => now()->addDays(5)->format('Y-m-d'),
+    ]);
+
+    GuideAvailability::query()->create([
+        'guide_id' => $guide->id,
+        'date' => now()->addDays(10)->format('Y-m-d'),
+        'status' => 'available',
+    ]);
+
+    GuideAvailability::query()->create([
+        'guide_id' => $guide->id,
+        'date' => now()->addDays(11)->format('Y-m-d'),
+        'status' => 'fully_booked',
+    ]);
+
+    actingAs($tourist);
+
+    $response = post(route('bookings.store'), [
+        'tour_id' => $tour->id,
+        'booking_date' => now()->addDays(11)->format('Y-m-d'),
+        'group_size' => 2,
+    ]);
+
+    $response
+        ->assertRedirect()
+        ->assertSessionHasErrors('booking_date');
+});
+
+test('tourist can submit booking on available date from guide availability', function () {
+    Notification::fake();
+
+    $tourist = User::factory()->create(['role' => 'tourist']);
+    $guide = User::factory()->create(['role' => 'guide']);
+
+    $tour = Tour::query()->create([
+        'guide_id' => $guide->id,
+        'title' => 'Romblon Island Hopper',
+        'region' => 'Mimaropa',
+        'summary' => str_repeat('Island hopping with snorkeling and beach breaks.', 3),
+        'duration_label' => 'Full-day',
+        'price_per_person' => 3300,
+        'is_featured' => true,
+        'available_on' => now()->addDays(5)->format('Y-m-d'),
+    ]);
+
+    $availableDate = now()->addDays(9)->format('Y-m-d');
+
+    GuideAvailability::query()->create([
+        'guide_id' => $guide->id,
+        'date' => $availableDate,
+        'status' => 'available',
+        'special_price' => 3500,
+    ]);
+
+    actingAs($tourist);
+
+    $response = post(route('bookings.store'), [
+        'tour_id' => $tour->id,
+        'booking_date' => $availableDate,
+        'group_size' => 2,
+    ]);
+
+    $response
+        ->assertRedirect()
+        ->assertSessionHas('status', 'Booking request sent to guide! You\'ll be notified soon.');
+
+    assertDatabaseHas('booking_requests', [
+        'tourist_id' => $tourist->id,
+        'guide_id' => $guide->id,
+        'tour_id' => $tour->id,
+        'total_price' => 7000,
+        'status' => 'pending',
+    ]);
 });

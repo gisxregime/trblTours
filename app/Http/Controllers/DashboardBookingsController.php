@@ -6,6 +6,7 @@ use App\Models\Booking;
 use App\Models\BookingRequest;
 use App\Models\Tour;
 use App\Models\TourReview;
+use App\Notifications\TourActivityNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
@@ -34,9 +35,66 @@ class DashboardBookingsController extends Controller
             ->latest()
             ->paginate(12);
 
+        $selectedBookingRequestId = $request->integer('focus');
+
+        $selectedBookingRequest = $selectedBookingRequestId > 0
+            ? $bookingRequests->getCollection()->firstWhere('id', $selectedBookingRequestId)
+            : null;
+
+        if ($selectedBookingRequest === null) {
+            $selectedBookingRequest = $bookingRequests->getCollection()->first(function (BookingRequest $bookingRequest): bool {
+                $status = strtolower((string) ($bookingRequest->booking?->status ?? ($bookingRequest->status ?? 'pending')));
+
+                return $status === 'completed';
+            });
+        }
+
+        if ($selectedBookingRequest === null) {
+            $selectedBookingRequest = $bookingRequests->getCollection()->first();
+        }
+
         return view('dashboards.my-bookings', [
             'bookingRequests' => $bookingRequests,
+            'selectedBookingRequest' => $selectedBookingRequest,
         ]);
+    }
+
+    public function cancel(Request $request, BookingRequest $bookingRequest): RedirectResponse
+    {
+        $user = $request->user();
+        abort_unless($user !== null, 401);
+        abort_unless($user->role === 'tourist', 403);
+        abort_unless((int) $bookingRequest->tourist_id === (int) $user->id, 403);
+
+        $bookingRequest->loadMissing([
+            'booking:id,booking_request_id,status',
+            'tour:id,title,name',
+            'guide:id,name,full_name',
+        ]);
+
+        $currentStatus = strtolower((string) ($bookingRequest->booking?->status ?? ($bookingRequest->status ?? 'pending')));
+
+        if ($currentStatus !== 'pending') {
+            return back()->withErrors([
+                'booking' => 'Only pending bookings can be cancelled.',
+            ]);
+        }
+
+        $bookingRequest->update(['status' => 'cancelled']);
+
+        if ($bookingRequest->guide !== null) {
+            $tourTitle = $bookingRequest->tour?->title ?: $bookingRequest->tour?->name ?: 'a tour';
+
+            $bookingRequest->guide->notify(new TourActivityNotification(
+                title: 'Booking request cancelled',
+                message: ($user->full_name ?: $user->name ?: 'A tourist').' cancelled their pending booking for "'.$tourTitle.'".',
+                icon: 'fa-calendar-xmark',
+                type: 'booking',
+                actionUrl: route('dashboard.guide.requests'),
+            ));
+        }
+
+        return redirect()->route('dashboard.my-bookings')->with('status', 'Pending booking cancelled successfully.');
     }
 
     public function storeRating(Request $request, Booking $booking): RedirectResponse
@@ -78,6 +136,20 @@ class DashboardBookingsController extends Controller
                 ->update(['rating' => round((float) $averageRating, 1)]);
         }
 
-        return redirect()->route('dashboard.my-bookings')->with('status', 'Thanks for rating your completed booking.');
+        if ($booking->guide !== null) {
+            $tourName = $booking->tour?->title ?: $booking->tour?->name ?: 'your tour';
+
+            $booking->guide->notify(new TourActivityNotification(
+                title: 'New tour review received',
+                message: ($user->full_name ?: $user->name ?: 'A tourist').' left a '.(int) $validated['rating'].'/5 review for "'.$tourName.'".',
+                icon: 'fa-star',
+                type: 'review',
+                actionUrl: route('dashboard.guide.requests'),
+            ));
+        }
+
+        return redirect()
+            ->route('dashboard.my-bookings', ['focus' => (int) $booking->booking_request_id])
+            ->with('status', 'Thanks for rating your completed booking.');
     }
 }

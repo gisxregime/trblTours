@@ -402,7 +402,8 @@
             letter-spacing: 0.04em;
         }
 
-        .booking-field select {
+        .booking-field select,
+        .booking-field input[type='date'] {
             min-height: 44px;
             border-radius: 12px;
             border: 1px solid rgba(111, 62, 44, 0.24);
@@ -410,6 +411,198 @@
             color: var(--brown-800);
             font-size: 14px;
             padding: 10px 12px;
+        }
+
+        .booking-field input[type='date'][readonly] {
+            cursor: pointer;
+        }
+
+        .booking-calendar {
+            border: 1px solid rgba(111, 62, 44, 0.2);
+            border-radius: 14px;
+            background: #fffdf8;
+            padding: 10px;
+        }
+
+        .booking-calendar-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .booking-calendar-head button {
+            min-height: 32px;
+            min-width: 32px;
+            border-radius: 999px;
+            border: 1px solid rgba(111, 62, 44, 0.2);
+            background: #ffffff;
+            color: var(--brown-800);
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .booking-calendar-month {
+            color: var(--brown-900);
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .booking-calendar-weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            gap: 6px;
+            margin-bottom: 6px;
+        }
+
+        .booking-calendar-weekday {
+            text-align: center;
+            color: #8a7561;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .booking-calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            gap: 6px;
+        }
+
+        .booking-calendar-blank {
+            min-height: 54px;
+        }
+
+        .booking-calendar-day {
+            min-height: 58px;
+            border-radius: 10px;
+            border: 1px solid rgba(111, 62, 44, 0.12);
+            background: #ffffff;
+            color: var(--brown-800);
+            padding: 6px;
+            text-align: left;
+            cursor: pointer;
+            display: grid;
+            gap: 2px;
+            align-content: space-between;
+            overflow: hidden;
+        }
+
+        .booking-calendar-day-number {
+            font-size: 13px;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .booking-calendar-day-meta {
+            font-size: 9px;
+            line-height: 1.1;
+            font-weight: 600;
+            display: block;
+            max-width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .booking-calendar-day.available {
+            border-color: #b8d7a6;
+            background: #f5fbf1;
+        }
+
+        .booking-calendar-day.limited_slots {
+            border-color: #efd49d;
+            background: #fff8eb;
+        }
+
+        .booking-calendar-day.fiesta {
+            border-color: #e8b5aa;
+            background: #fff2ef;
+        }
+
+        .booking-calendar-day.unavailable {
+            border-color: #d7d7de;
+            background: #f3f4f7;
+            color: #9a9eab;
+            cursor: not-allowed;
+        }
+
+        .booking-calendar-day.active {
+            outline: 2px solid #8f9d59;
+            outline-offset: 1px;
+        }
+
+        .availability-status {
+            border-radius: 999px;
+            padding: 1px 6px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+
+        .availability-status.available {
+            background: #e9f4de;
+            color: #3f6a2f;
+        }
+
+        .availability-status.limited_slots {
+            background: #fff1d6;
+            color: #92640f;
+        }
+
+        .availability-status.fiesta {
+            background: #ffe3df;
+            color: #9b3e2d;
+        }
+
+        .availability-status.fully_booked {
+            background: #f1f2f6;
+            color: #687188;
+        }
+
+        .availability-empty {
+            margin-top: 6px;
+            color: #8a7561;
+            font-size: 12px;
+        }
+
+        .availability-empty.available {
+            color: #3f6a2f;
+        }
+
+        .availability-empty.unavailable {
+            color: #8d2d21;
+        }
+
+        .availability-help {
+            margin-top: -4px;
+            margin-bottom: 6px;
+            color: #8a7561;
+            font-size: 12px;
+        }
+
+        @media (max-width: 560px) {
+            .booking-calendar-weekday {
+                font-size: 10px;
+            }
+
+            .booking-calendar-blank,
+            .booking-calendar-day {
+                min-height: 44px;
+            }
+
+            .booking-calendar-day {
+                padding: 4px;
+            }
+
+            .booking-calendar-day-number {
+                font-size: 12px;
+            }
+
+            .booking-calendar-day-meta {
+                display: none;
+            }
         }
 
         .book-btn {
@@ -507,6 +700,44 @@
         $description = trim((string) ($tour->description ?? $tour->summary ?? 'No description available yet.'));
         $title = $tour->title ?? $tour->name ?? 'Tour Details';
 
+        $availabilityDates = collect($availabilityOptions ?? [])
+            ->map(function (mixed $option): ?array {
+                $dateValue = data_get($option, 'date');
+
+                if ($dateValue instanceof \DateTimeInterface) {
+                    $date = $dateValue->format('Y-m-d');
+                } else {
+                    $date = trim((string) $dateValue);
+                }
+
+                if ($date === '') {
+                    return null;
+                }
+
+                $status = (string) data_get($option, 'status', 'available');
+
+                $label = match ($status) {
+                    'fully_booked' => 'Fully Booked',
+                    'limited_slots' => 'Limited Slots',
+                    'fiesta' => 'Fiesta',
+                    default => 'Available',
+                };
+
+                $dateCarbon = \Illuminate\Support\Carbon::parse($date);
+
+                return [
+                    'date' => $date,
+                    'display_date' => $dateCarbon->format('M d, Y'),
+                    'status' => $status,
+                    'status_label' => $label,
+                    'special_price' => data_get($option, 'special_price'),
+                ];
+            })
+            ->filter()
+            ->values();
+
+        $defaultBookingDate = old('booking_date', $availabilityDates->first()['date'] ?? now()->addDay()->toDateString());
+
         $sourceContext = in_array(($source ?? 'explore'), ['home', 'explore', 'dashboard'], true)
             ? $source
             : 'explore';
@@ -518,7 +749,7 @@
         };
 
         $backLabel = match ($sourceContext) {
-            'dashboard' => 'Back to Tourist Dashboard',
+            'dashboard' => 'Back',
             'home' => 'Back to Home',
             default => 'Back to Explore Tours',
         };
@@ -649,23 +880,39 @@
                             <p class="booking-price">₱ {{ number_format($price, 2) }}</p>
 
                             <div class="booking-field">
-                                <label for="bookingDate">Tour Date</label>
-                                <select id="bookingDate" name="booking_date" required>
-                                    @php
-                                        $availableDate = \Illuminate\Support\Carbon::parse($tour->available_on ?? now()->addDays(3))->toDateString();
-                                        $fallbackDates = [
-                                            now()->addDays(3)->toDateString(),
-                                            now()->addDays(7)->toDateString(),
-                                            now()->addDays(14)->toDateString(),
-                                        ];
-                                        $dateOptions = collect([$availableDate, ...$fallbackDates])->unique()->values();
-                                    @endphp
-                                    @foreach($dateOptions as $dateOption)
-                                        <option value="{{ $dateOption }}" @selected(old('booking_date') === $dateOption)>
-                                            {{ \Illuminate\Support\Carbon::parse($dateOption)->format('M d, Y') }}
-                                        </option>
-                                    @endforeach
-                                </select>
+                                <label for="bookingDate">Preferred Date</label>
+                                <input id="bookingDate" name="booking_date" type="date" min="{{ now()->toDateString() }}"
+                                    value="{{ $defaultBookingDate }}" readonly required>
+                                <p class="availability-help">Pick a day from the booking calendar. Enabled dates are bookable.</p>
+
+                                <div class="booking-calendar" data-booking-calendar>
+                                    <div class="booking-calendar-head">
+                                        <button type="button" aria-label="Previous month" data-calendar-prev>&larr;</button>
+                                        <p class="booking-calendar-month" data-calendar-month></p>
+                                        <button type="button" aria-label="Next month" data-calendar-next>&rarr;</button>
+                                    </div>
+
+                                    <div class="booking-calendar-weekdays">
+                                        <span class="booking-calendar-weekday">Sun</span>
+                                        <span class="booking-calendar-weekday">Mon</span>
+                                        <span class="booking-calendar-weekday">Tue</span>
+                                        <span class="booking-calendar-weekday">Wed</span>
+                                        <span class="booking-calendar-weekday">Thu</span>
+                                        <span class="booking-calendar-weekday">Fri</span>
+                                        <span class="booking-calendar-weekday">Sat</span>
+                                    </div>
+
+                                    <div class="booking-calendar-grid" data-calendar-grid></div>
+                                </div>
+
+                                <p class="availability-empty" data-calendar-note></p>
+
+                                <div class="mt-1 flex flex-wrap gap-0.5 text-[8px]">
+                                    <span class="availability-status available">Available</span>
+                                    <span class="availability-status limited_slots">Limited Slots</span>
+                                    <span class="availability-status fiesta">Fiesta</span>
+                                    <span class="availability-status fully_booked">Unavailable</span>
+                                </div>
                             </div>
 
                             <div class="booking-field">
@@ -706,6 +953,250 @@
     </main>
     <script>
         (() => {
+            const availabilityOptions = @json($availabilityDates->all());
+            const hasGuideAvailabilityRules = @json((bool) ($hasGuideAvailabilityRules ?? false));
+
+            const bookingDateInput = document.getElementById('bookingDate');
+            const calendarShell = document.querySelector('[data-booking-calendar]');
+            const calendarGrid = document.querySelector('[data-calendar-grid]');
+            const calendarMonthLabel = document.querySelector('[data-calendar-month]');
+            const prevMonthButton = document.querySelector('[data-calendar-prev]');
+            const nextMonthButton = document.querySelector('[data-calendar-next]');
+            const calendarNote = document.querySelector('[data-calendar-note]');
+
+            const dateFormatter = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' });
+            const availabilityMap = new Map(availabilityOptions.map((option) => [option.date, option]));
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const toIsoDate = (date) => {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+
+                return `${year}-${month}-${day}`;
+            };
+
+            const parseIsoDate = (isoDate) => {
+                const [year, month, day] = isoDate.split('-').map(Number);
+
+                return new Date(year, month - 1, day);
+            };
+
+            const describeStatus = (status) => {
+                switch (status) {
+                    case 'limited_slots':
+                        return 'Limited Slots';
+                    case 'fiesta':
+                        return 'Fiesta';
+                    case 'fully_booked':
+                        return 'Unavailable';
+                    default:
+                        return 'Available';
+                }
+            };
+
+            const compactStatusLabel = (status) => {
+                switch (status) {
+                    case 'limited_slots':
+                        return 'Slots';
+                    case 'fiesta':
+                        return 'Fiesta';
+                    case 'fully_booked':
+                        return 'Full';
+                    default:
+                        return 'Avail';
+                }
+            };
+
+            const getDayState = (date) => {
+                const dateIso = toIsoDate(date);
+                const option = availabilityMap.get(dateIso);
+                const isPastDate = date < today;
+
+                if (isPastDate) {
+                    return {
+                        enabled: false,
+                        variant: 'unavailable',
+                        label: 'Past',
+                        status: 'fully_booked',
+                        option: null,
+                    };
+                }
+
+                if (option) {
+                    const isUnavailable = option.status === 'fully_booked';
+
+                    return {
+                        enabled: !isUnavailable,
+                        variant: isUnavailable ? 'unavailable' : option.status,
+                        label: describeStatus(option.status),
+                        status: option.status,
+                        option,
+                    };
+                }
+
+                if (hasGuideAvailabilityRules) {
+                    return {
+                        enabled: false,
+                        variant: 'unavailable',
+                        label: 'Unavailable',
+                        status: 'fully_booked',
+                        option: null,
+                    };
+                }
+
+                return {
+                    enabled: true,
+                    variant: 'available',
+                    label: 'Available',
+                    status: 'available',
+                    option: null,
+                };
+            };
+
+            const updateCalendarNote = () => {
+                if (!(bookingDateInput instanceof HTMLInputElement) || !(calendarNote instanceof HTMLElement)) {
+                    return;
+                }
+
+                const selectedDate = bookingDateInput.value;
+                const selectedOption = availabilityMap.get(selectedDate);
+
+                calendarNote.classList.remove('available', 'unavailable');
+                bookingDateInput.setCustomValidity('');
+
+                if (selectedDate === '') {
+                    calendarNote.textContent = 'Select an available date to continue booking.';
+
+                    return;
+                }
+
+                if (selectedOption) {
+                    const selectedStatus = selectedOption.status;
+                    const statusLabel = describeStatus(selectedStatus);
+                    const statusClass = selectedStatus === 'fully_booked' ? 'unavailable' : 'available';
+                    const pricingText = selectedOption.special_price
+                        ? ` Special rate: PHP ${Number(selectedOption.special_price).toFixed(2)} per guest.`
+                        : '';
+
+                    calendarNote.classList.add(statusClass);
+                    calendarNote.textContent = `${selectedOption.display_date}: ${statusLabel}.${pricingText}`;
+
+                    if (selectedStatus === 'fully_booked') {
+                        bookingDateInput.setCustomValidity('Selected date is unavailable. Please choose a different date.');
+                    }
+
+                    return;
+                }
+
+                if (hasGuideAvailabilityRules) {
+                    calendarNote.classList.add('unavailable');
+                    calendarNote.textContent = 'Selected date is unavailable for this tour package.';
+                    bookingDateInput.setCustomValidity('Selected date is unavailable for this tour package.');
+
+                    return;
+                }
+
+                calendarNote.classList.add('available');
+                calendarNote.textContent = 'Date is available for booking.';
+            };
+
+            let activeMonthDate = bookingDateInput instanceof HTMLInputElement && bookingDateInput.value
+                ? parseIsoDate(bookingDateInput.value)
+                : new Date(today);
+
+            activeMonthDate = new Date(activeMonthDate.getFullYear(), activeMonthDate.getMonth(), 1);
+
+            const renderCalendar = () => {
+                if (!(calendarGrid instanceof HTMLElement) || !(calendarMonthLabel instanceof HTMLElement) || !(bookingDateInput instanceof HTMLInputElement)) {
+                    return;
+                }
+
+                calendarMonthLabel.textContent = dateFormatter.format(activeMonthDate);
+                calendarGrid.innerHTML = '';
+
+                const monthStart = new Date(activeMonthDate.getFullYear(), activeMonthDate.getMonth(), 1);
+                const monthEnd = new Date(activeMonthDate.getFullYear(), activeMonthDate.getMonth() + 1, 0);
+                const daysInMonth = monthEnd.getDate();
+                const firstWeekday = monthStart.getDay();
+
+                for (let blankIndex = 0; blankIndex < firstWeekday; blankIndex++) {
+                    const blankCell = document.createElement('div');
+                    blankCell.className = 'booking-calendar-blank';
+                    calendarGrid.appendChild(blankCell);
+                }
+
+                for (let dayNumber = 1; dayNumber <= daysInMonth; dayNumber++) {
+                    const currentDate = new Date(activeMonthDate.getFullYear(), activeMonthDate.getMonth(), dayNumber);
+                    const dateIso = toIsoDate(currentDate);
+                    const dayState = getDayState(currentDate);
+
+                    const dayButton = document.createElement('button');
+                    dayButton.type = 'button';
+                    dayButton.className = `booking-calendar-day ${dayState.variant}`;
+
+                    if (bookingDateInput.value === dateIso) {
+                        dayButton.classList.add('active');
+                    }
+
+                    if (!dayState.enabled) {
+                        dayButton.disabled = true;
+                    }
+
+                    let metaText = dayState.label;
+                    if (dayState.option?.special_price) {
+                        metaText = `P${Number(dayState.option.special_price).toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+                    } else {
+                        metaText = compactStatusLabel(dayState.status);
+                    }
+
+                    dayButton.innerHTML = `<span class="booking-calendar-day-number">${dayNumber}</span><span class="booking-calendar-day-meta">${metaText}</span>`;
+                    dayButton.title = `${dateIso} - ${dayState.label}`;
+
+                    if (dayState.enabled) {
+                        dayButton.addEventListener('click', () => {
+                            bookingDateInput.value = dateIso;
+                            updateCalendarNote();
+                            renderCalendar();
+                        });
+                    }
+
+                    calendarGrid.appendChild(dayButton);
+                }
+            };
+
+            if (prevMonthButton instanceof HTMLButtonElement) {
+                prevMonthButton.addEventListener('click', () => {
+                    activeMonthDate = new Date(activeMonthDate.getFullYear(), activeMonthDate.getMonth() - 1, 1);
+                    renderCalendar();
+                });
+            }
+
+            if (nextMonthButton instanceof HTMLButtonElement) {
+                nextMonthButton.addEventListener('click', () => {
+                    activeMonthDate = new Date(activeMonthDate.getFullYear(), activeMonthDate.getMonth() + 1, 1);
+                    renderCalendar();
+                });
+            }
+
+            if (bookingDateInput instanceof HTMLInputElement) {
+                bookingDateInput.addEventListener('change', () => {
+                    if (bookingDateInput.value) {
+                        const parsedDate = parseIsoDate(bookingDateInput.value);
+                        activeMonthDate = new Date(parsedDate.getFullYear(), parsedDate.getMonth(), 1);
+                    }
+
+                    updateCalendarNote();
+                    renderCalendar();
+                });
+            }
+
+            if (calendarShell instanceof HTMLElement) {
+                updateCalendarNote();
+                renderCalendar();
+            }
+
             document.addEventListener('submit', async (event) => {
                 const form = event.target;
 

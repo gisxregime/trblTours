@@ -3,6 +3,7 @@
 namespace App\Livewire\Guide;
 
 use App\Models\BookingRequest;
+use App\Models\TourReview;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
 use Livewire\Attributes\Layout;
@@ -61,6 +62,7 @@ class GuideBookingRequests extends Component
     public function render()
     {
         $requests = collect();
+        $recentReviews = collect();
 
         if (Schema::hasTable('booking_requests')) {
             $requests = BookingRequest::query()
@@ -72,6 +74,15 @@ class GuideBookingRequests extends Component
                 ->get();
         }
 
+        if (Schema::hasTable('tour_reviews')) {
+            $recentReviews = TourReview::query()
+                ->where('guide_id', (int) Auth::id())
+                ->with(['tour:id,title', 'tourist:id,full_name,name'])
+                ->latest()
+                ->limit(8)
+                ->get();
+        }
+
         $selectedRequest = $this->selectedRequestId !== null
             ? $requests->firstWhere('id', $this->selectedRequestId)
             : $requests->first();
@@ -79,6 +90,7 @@ class GuideBookingRequests extends Component
         return view('livewire.guide.guide-booking-requests', [
             'requests' => $requests,
             'selectedRequest' => $selectedRequest,
+            'recentReviews' => $recentReviews,
         ]);
     }
 }

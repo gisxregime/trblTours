@@ -1,4 +1,4 @@
-<div class="bg-gradient-to-b from-slate-50 via-white to-emerald-50 py-10">
+<div class="bg-gradient-to-b from-slate-50 via-white to-emerald-50 py-10" wire:poll.20s>
     <div class="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 sm:px-6 lg:px-8">
         <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -84,6 +84,37 @@
                         </div>
                     <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                 <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+
+                <div class="mt-6 border-t border-slate-200 pt-4">
+                    <div class="mb-3 flex items-center justify-between gap-2">
+                        <h4 class="text-sm font-semibold text-slate-900">Latest Tourist Reviews</h4>
+                        <span class="text-xs text-slate-500">Auto refresh every 20s</span>
+                    </div>
+
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($recentReviews->isEmpty()): ?>
+                        <p class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-3 text-sm text-slate-500">
+                            No reviews yet from completed tours.
+                        </p>
+                    <?php else: ?>
+                        <div class="space-y-3">
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $recentReviews; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $review): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                                    <div class="flex items-start justify-between gap-2">
+                                        <div>
+                                            <p class="text-sm font-semibold text-slate-900"><?php echo e($review->tour?->title ?? 'Tour Review'); ?></p>
+                                            <p class="text-xs text-slate-600">By <?php echo e($review->tourist?->full_name ?? $review->tourist?->name ?? 'Tourist'); ?></p>
+                                        </div>
+                                        <span class="rounded-full bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-700"><?php echo e((int) $review->rating); ?>/5</span>
+                                    </div>
+
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(filled($review->review)): ?>
+                                        <p class="mt-2 text-sm text-slate-700"><?php echo e($review->review); ?></p>
+                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                </div>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                        </div>
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                </div>
             </article>
         </section>
     </div>
