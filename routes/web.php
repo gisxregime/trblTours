@@ -16,6 +16,7 @@ use App\Http\Controllers\RequestController;
 use App\Http\Controllers\SettingsController;
 use App\Livewire\Guide\GuideAvailabilityManager;
 use App\Livewire\Guide\GuideBookingRequests;
+use App\Livewire\Guide\GuideDashboard;
 use App\Livewire\Guide\GuideMessages;
 use App\Livewire\Guide\GuideProfile;
 use App\Livewire\Guide\GuideTours;
@@ -138,6 +139,8 @@ Route::get('/dashboard', [DashboardController::class, 'redirect'])
     ->name('dashboard');
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::view('/how-it-works', 'how-it-works')->name('how-it-works');
+
     Route::get('/dashboard/tourist', [DashboardController::class, 'tourist'])->name('dashboard.tourist');
     Route::post('/feed/filter', [FeedController::class, 'filter'])->name('feed.filter');
     Route::post('/requests', [RequestController::class, 'store'])->name('requests.store');
@@ -163,6 +166,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/dashboard/messages/{conversation}/read', [DashboardMessagesController::class, 'markRead'])->name('dashboard.messages.read');
 
     Route::get('/dashboard/guide', [GuideDashboardController::class, 'index'])->name('dashboard.guide');
+    Route::get('/dashboard/guide/dashboard', GuideDashboard::class)->name('dashboard.guide.dashboard');
     Route::post('/dashboard/guide/request-posts/{touristRequest}/comments', [GuideDashboardController::class, 'storeRequestComment'])->name('dashboard.guide.request-posts.comments.store');
     Route::post('/dashboard/guide/listings', [GuideDashboardController::class, 'storeListing'])->name('dashboard.guide.listings.store');
     Route::delete('/dashboard/guide/listings/{tour}', [GuideDashboardController::class, 'destroyListing'])->name('dashboard.guide.listings.destroy');

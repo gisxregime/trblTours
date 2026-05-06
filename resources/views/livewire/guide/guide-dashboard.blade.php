@@ -1,288 +1,246 @@
-<div class="min-h-screen bg-white py-8">
+@php
+    $guideName = auth()->user()?->full_name ?? auth()->user()?->name ?? 'Local Tour Guide';
+    $guideInitials = collect(explode(' ', trim((string) $guideName)))
+        ->filter(fn (string $chunk): bool => $chunk !== '')
+        ->map(fn (string $chunk): string => strtoupper(substr($chunk, 0, 1)))
+        ->take(2)
+        ->implode('');
+
+    $ongoingCount = $ongoingTours->count();
+    $completedCount = $completedTours->count();
+    $declinedCount = $declinedBookings->count();
+    $historyCount = $historyBookings->count();
+@endphp
+
+<div class="min-h-screen bg-[#f5efe2] py-8" wire:poll.20s>
     <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-        <!-- Profile Header Section -->
-        <div class="mb-8 overflow-hidden rounded-2xl border border-[#d4a563]/35 bg-white shadow-[0_18px_36px_-22px_rgba(122,85,50,0.62)]">
-            <!-- Background Image -->
-            <div class="relative h-48 bg-gradient-to-r from-[#d4a563] via-[#c69958] to-[#b8894b] sm:h-56 md:h-64">
-                @if ($profile && isset($profile['cover_photo_path']))
-                    <img
-                        src="{{ asset('storage/'.$profile['cover_photo_path']) }}"
-                        alt="Cover"
-                        class="h-full w-full object-cover"
-                    />
-                @else
-                    <div class="h-full w-full bg-gradient-to-r from-[#e7c796] via-[#d4a563] to-[#c69958]"></div>
-                @endif
-            </div>
+        <a href="{{ route('dashboard.guide', ['tab' => 'requests']) }}" class="inline-flex items-center gap-2 rounded-full border border-[#6f3e2c]/20 bg-white px-4 py-2 text-sm font-semibold text-[#3f2d22] shadow-[0_10px_22px_rgba(63,45,34,0.12)] transition hover:border-[#8f9d59] hover:text-[#8f9d59]">
+            <span aria-hidden="true">&larr;</span>
+            <span>Back</span>
+        </a>
 
-            <!-- Profile Content -->
-            <div class="relative px-6 pb-6 sm:px-8 md:px-10">
-                <div class="flex flex-col gap-6 md:flex-row md:items-start">
-                    <!-- Profile Picture and Info -->
-                    <div class="flex flex-col md:flex-row md:items-end md:gap-6">
-                        <!-- Profile Picture -->
-                        <div class="relative -mt-16 mb-4 md:mb-0">
-                            <div class="relative h-32 w-32 rounded-full border-4 border-white shadow-[0_10px_22px_-10px_rgba(122,85,50,0.72)] ring-2 ring-[#d4a563]/40">
-                                @if ($profile && isset($profile['profile_photo_path']))
-                                    <img
-                                        src="{{ asset('storage/'.$profile['profile_photo_path']) }}"
-                                        alt="{{ $user->full_name ?? $user->name }}"
-                                        class="h-full w-full rounded-full object-cover"
-                                    />
-                                @elseif ($user->profile_photo_path ?? null)
-                                    <img
-                                        src="{{ asset('storage/'.$user->profile_photo_path) }}"
-                                        alt="{{ $user->full_name ?? $user->name }}"
-                                        class="h-full w-full rounded-full object-cover"
-                                    />
-                                @else
-                                    <div class="flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-[#d4a563] to-[#b8894b] text-3xl font-bold text-white">
-                                        {{ substr($user->full_name ?? $user->name, 0, 1) }}
-                                    </div>
-                                @endif
-                            </div>
-                        </div>
-
-                        <!-- Name and Location -->
-                        <div class="flex-grow">
-                            <h1 class="text-2xl font-bold text-[#7a5532] md:text-3xl">
-                                {{ $user->full_name ?? $user->name }}
-                            </h1>
-                            <p class="mt-1 flex items-center gap-2 text-[#7a5532]">
-                                <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
-                                </svg>
-                                <span>{{ $user->region ?? 'Location not specified' }}</span>
-                            </p>
-
-                            <!-- Completion Bar -->
-                            <div class="mt-3">
-                                <div class="mb-1 flex items-center justify-between">
-                                    <span class="text-xs font-semibold text-[#7a5532]">Profile Completion</span>
-                                    <span class="text-xs font-semibold text-[#8a6746]">{{ $completionPercentage }}%</span>
-                                </div>
-                                <div class="h-2.5 w-full overflow-hidden rounded-full bg-[#f3e3c9] ring-1 ring-[#d4a563]/55 shadow-[0_6px_14px_-10px_rgba(122,85,50,0.8)]">
-                                    <div
-                                        class="h-full bg-[#d4a563] transition-all duration-300"
-                                        style="width: {{ $completionPercentage }}%"
-                                    ></div>
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
+        <section class="mt-4 rounded-[22px] border border-[#6f3e2c]/15 bg-[#fffaf2] p-5 shadow-[0_14px_36px_rgba(63,45,34,0.14)] sm:p-6">
+            <div class="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-[0.22em] text-[#6f5d52]">Guide Control Center</p>
+                    <h1 class="mt-2 text-3xl font-black leading-tight text-[#3f2d22] sm:text-4xl">Dashboard</h1>
+                    <p class="mt-2 text-sm text-[#6f5d52]">Track booking movement, tour status, and performance in one place.</p>
+                </div>
+                <div class="inline-flex items-center gap-2 rounded-full border border-[#d4a563]/45 bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-[#5a4a42]">
+                    <span>{{ $pendingBookings->count() }} Pending</span>
                 </div>
             </div>
-        </div>
 
-        <!-- Main Content Grid -->
-        <div class="grid gap-8 lg:grid-cols-3">
-            <!-- Left Column - Stats and Tours -->
-            <div class="space-y-8 lg:col-span-2">
-                <!-- Stats Cards -->
-                <div class="grid gap-4 grid-cols-2 md:grid-cols-4">
-                    <!-- Total Earnings -->
-                    <div class="rounded-xl border border-[#d4a563]/30 bg-white p-4 shadow-[0_10px_24px_-16px_rgba(122,85,50,0.5)]">
-                        <p class="text-sm font-medium text-[#8a6746]">Total Earnings</p>
-                        <p class="mt-2 text-2xl font-bold text-[#7a5532]">₱{{ number_format($totalEarnings, 0) }}</p>
-                        <p class="mt-1 text-xs text-[#9a7a58]">All time</p>
-                    </div>
-
-                    <!-- Active Tours -->
-                    <div class="rounded-xl border border-[#d4a563]/30 bg-white p-4 shadow-[0_10px_24px_-16px_rgba(122,85,50,0.5)]">
-                        <p class="text-sm font-medium text-[#8a6746]">Active Tours</p>
-                        <p class="mt-2 text-2xl font-bold text-[#7a5532]">{{ $activeTours }}</p>
-                        <p class="mt-1 text-xs text-[#9a7a58]">Available</p>
-                    </div>
-
-                    <!-- Featured Tours -->
-                    <div class="rounded-xl border border-[#d4a563]/30 bg-white p-4 shadow-[0_10px_24px_-16px_rgba(122,85,50,0.5)]">
-                        <p class="text-sm font-medium text-[#8a6746]">Featured Tours</p>
-                        <p class="mt-2 text-2xl font-bold text-[#7a5532]">{{ $featuredTours }}</p>
-                        <p class="mt-1 text-xs text-[#9a7a58]">Based on bookings</p>
-                    </div>
-
-                    <!-- Rating -->
-                    <div class="rounded-xl border border-[#d4a563]/30 bg-white p-4 shadow-[0_10px_24px_-16px_rgba(122,85,50,0.5)]">
-                        <p class="text-sm font-medium text-[#8a6746]">Rating</p>
-                        <div class="mt-2 flex items-baseline gap-1">
-                            <p class="text-2xl font-bold text-[#7a5532]">{{ number_format($averageRating, 1) }}</p>
-                            <p class="text-xs text-[#9a7a58]">/5.0</p>
-                        </div>
-                        <div class="mt-1 flex gap-0.5">
-                            @for ($i = 1; $i <= 5; $i++)
-                                <svg class="h-3 w-3 {{ $i <= floor($averageRating) ? 'text-[#c69958]' : 'text-[#ecd3ad]' }}" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                </svg>
-                            @endfor
-                        </div>
-                    </div>
-
-                    <!-- Profile Views -->
-                    <div class="rounded-xl border border-[#d4a563]/30 bg-white p-4 shadow-[0_10px_24px_-16px_rgba(122,85,50,0.5)]">
-                        <p class="text-sm font-medium text-[#8a6746]">Profile Views</p>
-                        <p class="mt-2 text-2xl font-bold text-[#7a5532]">{{ $profileViews }}</p>
-                        <p class="mt-1 text-xs text-[#9a7a58]">This month</p>
+            <div class="mt-4 flex items-center justify-between gap-4 rounded-[16px] border border-[#6f3e2c]/15 bg-white px-4 py-3 shadow-[0_10px_22px_rgba(63,45,34,0.12)]">
+                <div class="inline-flex items-center gap-3">
+                    <span class="inline-flex h-10 w-10 items-center justify-center rounded-full border-2 border-[#f5e8cc] bg-[#efe1c1] text-sm font-bold text-[#6f5d52]">
+                        {{ $guideInitials !== '' ? $guideInitials : 'LG' }}
+                    </span>
+                    <div>
+                        <p class="text-sm font-bold text-[#3f2d22]">{{ $guideName }}</p>
+                        <p class="text-xs text-[#6f5d52]">Local Tour Guide</p>
                     </div>
                 </div>
 
-                <!-- Create New Tour Button -->
-                <div class="flex justify-end gap-3">
-                    <button
-                        wire:click="openSettings"
-                        type="button"
-                        class="inline-flex items-center gap-2 rounded-lg border border-[#d4a563]/50 bg-white px-6 py-3 font-semibold text-[#7a5532] transition hover:bg-[#fff7ec] shadow-[0_8px_18px_-10px_rgba(122,85,50,0.45)]"
-                    >
-                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15a3 3 0 100-6 3 3 0 000 6z" />
-                        </svg>
-                        Settings
-                    </button>
-                    <a href="{{ route('dashboard.guide.tours') }}" class="inline-flex items-center gap-2 rounded-lg bg-[#d4a563] px-6 py-3 font-semibold text-white transition hover:bg-[#c69958] shadow-[0_8px_18px_-10px_rgba(122,85,50,0.65)]">
-                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                        </svg>
-                        Create New Tour
-                    </a>
+                <div class="hidden items-center gap-2 lg:inline-flex">
+                    <span class="inline-flex items-center rounded-full border border-[#d4a563]/45 bg-[#fff8eb] px-3 py-1 text-xs font-semibold text-[#5a4a42]">Manage Tours</span>
+                    <span class="inline-flex items-center rounded-full border border-[#d4a563]/45 bg-[#fff8eb] px-3 py-1 text-xs font-semibold text-[#5a4a42]">Booking Requests</span>
                 </div>
+            </div>
+        </section>
 
-                <!-- Tour Listings -->
-                <div class="rounded-xl border border-[#d4a563]/30 bg-white p-6 shadow-[0_10px_24px_-16px_rgba(122,85,50,0.5)]">
-                    <h2 class="mb-4 text-xl font-bold text-[#7a5532]">Your Tour Listings</h2>
+        <div class="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1.85fr)_minmax(280px,1fr)]">
+            <div class="space-y-6">
+                <section class="rounded-[22px] border border-[#6f3e2c]/15 bg-[#fff8eb] p-5 shadow-[0_10px_22px_rgba(63,45,34,0.12)] sm:p-6">
+                    <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                        <h2 class="text-2xl font-black text-[#3f2d22]">Pending Bookings</h2>
+                        <span class="inline-flex w-fit items-center rounded-full border border-[#d4a563]/35 bg-white px-3 py-1 text-sm font-semibold text-[#6f5d52]">{{ $pendingBookings->count() }} waiting</span>
+                    </div>
 
-                    @if ($guideTours->isEmpty())
-                        <div class="rounded-lg border-2 border-dashed border-[#d4a563]/45 bg-[#fff7ec] py-12 text-center">
-                            <svg class="mx-auto h-12 w-12 text-[#c69958]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                            </svg>
-                            <p class="mt-2 text-sm text-[#8a6746]">No tour listings yet. Create your first tour!</p>
-                        </div>
+                    @if ($actionMessage)
+                        <p class="mt-4 rounded-xl border border-[#d4a563]/30 bg-white px-4 py-3 text-sm font-semibold text-[#5b3a26]">{{ $actionMessage }}</p>
+                    @endif
+
+                    @if ($pendingBookings->isEmpty())
+                        <p class="mt-4 rounded-xl border border-dashed border-[#d9c3a0] bg-white p-4 text-sm text-[#6f5d52]">No pending bookings.</p>
                     @else
-                        <div class="space-y-3">
-                            @foreach ($guideTours as $tour)
-                                <div wire:key="tour-{{ $tour->id }}" class="flex items-center justify-between rounded-lg border border-[#d4a563]/30 bg-white p-4 transition hover:bg-[#fff7ec]">
-                                    <div class="flex-grow">
-                                        <h3 class="font-semibold text-[#7a5532]">{{ $tour->title ?? $tour->name }}</h3>
-                                        <p class="mt-1 text-sm text-[#8a6746]">
-                                            <span class="inline-block rounded bg-[#f7ead7] px-2 py-1 text-xs font-medium text-[#7a5532]">
-                                                {{ $tour->region ?? 'Region' }}
-                                            </span>
-                                        </p>
+                        <div class="mt-4 grid gap-4">
+                            @foreach ($pendingBookings as $booking)
+                                <article wire:key="pending-{{ $booking->id }}" class="rounded-2xl border border-[#d4a563]/30 bg-white p-4 shadow-[0_10px_20px_-16px_rgba(122,85,50,0.5)]">
+                                    <div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+                                        <div class="grid gap-1 text-sm text-[#6f5d52]">
+                                            <p><span class="font-semibold text-[#3f2d22]">Tourist:</span> {{ $booking->tourist->full_name ?? $booking->tourist->name ?? 'Unknown' }}</p>
+                                            <p><span class="font-semibold text-[#3f2d22]">Tour date:</span> {{ $booking->requested_date?->format('M d, Y') ?? '-' }}</p>
+                                            <p><span class="font-semibold text-[#3f2d22]">Tour title:</span> {{ $booking->tour->title ?? $booking->tour->name ?? 'Tour package' }}</p>
+                                        </div>
+
+                                        <div class="flex flex-wrap gap-2">
+                                            <button type="button" wire:click="acceptPending({{ $booking->id }})" class="inline-flex items-center rounded-full border border-[#8f9d59] bg-[#8f9d59] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#7a894b]">
+                                                Accept
+                                            </button>
+                                            <button type="button" wire:click="declinePending({{ $booking->id }})" class="inline-flex items-center rounded-full border border-[#b1544d] bg-[#b1544d] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#9d4741]">
+                                                Decline
+                                            </button>
+                                        </div>
                                     </div>
-                                    <div class="flex gap-2">
-                                        <a href="{{ route('dashboard.guide.tours', ['edit' => $tour->id]) }}" class="inline-flex items-center gap-1 rounded-md border border-[#d4a563]/45 bg-[#fff7ec] px-3 py-2 text-sm font-medium text-[#7a5532] transition hover:bg-[#f7ead7]">
-                                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                            </svg>
-                                            Edit
-                                        </a>
-                                        <button
-                                            wire:click="deleteTour({{ $tour->id }})"
-                                            wire:confirm="Are you sure you want to delete this tour?"
-                                            type="button"
-                                            class="inline-flex items-center gap-1 rounded-md border border-[#d4a563]/45 bg-white px-3 py-2 text-sm font-medium text-[#7a5532] transition hover:bg-[#f7ead7]"
-                                        >
-                                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                            </svg>
-                                            Delete
-                                        </button>
-                                    </div>
-                                </div>
+                                </article>
                             @endforeach
                         </div>
                     @endif
-                </div>
-            </div>
+                </section>
 
-            <!-- Right Column - Reviews -->
-            <div class="h-fit rounded-xl border border-[#d4a563]/30 bg-white p-6 shadow-[0_10px_24px_-16px_rgba(122,85,50,0.5)]">
-                <h2 class="mb-4 text-xl font-bold text-[#7a5532]">Recent Reviews</h2>
+                <section class="grid gap-6 lg:grid-cols-2">
+                    <article class="rounded-[22px] border border-[#6f3e2c]/15 bg-white p-6 shadow-[0_10px_22px_rgba(63,45,34,0.12)]">
+                        <h3 class="text-2xl font-black text-[#3f2d22]">On Going Tours</h3>
 
-                @if ($recentReviews->isEmpty())
-                    <div class="rounded-lg border-2 border-dashed border-[#d4a563]/45 bg-[#fff7ec] py-8 text-center">
-                        <svg class="mx-auto h-10 w-10 text-[#c69958]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
-                        </svg>
-                        <p class="mt-2 text-sm text-[#8a6746]">No reviews yet</p>
-                    </div>
-                @else
-                    <div class="space-y-4">
-                        @foreach ($recentReviews as $review)
-                            <div wire:key="review-{{ $review->id }}" class="border-b border-[#ecd3ad] pb-4 last:border-b-0 last:pb-0">
-                                <div class="flex items-start justify-between">
-                                    <div class="flex-grow">
-                                        <p class="font-semibold text-[#7a5532]">{{ $review->tourist->full_name ?? $review->tourist->name }}</p>
-                                        <div class="mt-1 flex gap-0.5">
-                                            @for ($i = 1; $i <= 5; $i++)
-                                                <svg class="h-3.5 w-3.5 {{ $i <= $review->rating ? 'text-[#c69958]' : 'text-[#ecd3ad]' }}" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                                </svg>
-                                            @endfor
-                                        </div>
-                                    </div>
-                                    <span class="text-xs text-[#9a7a58]">{{ $review->created_at?->diffForHumans() ?? 'Recently' }}</span>
-                                </div>
-                                <p class="mt-2 text-sm text-[#8a6746]">{{ $review->review ?? $review->comment ?? 'No comment' }}</p>
+                        @if ($ongoingTours->isEmpty())
+                            <p class="mt-4 rounded-xl border border-dashed border-[#d4a563]/35 bg-[#fff8eb] p-4 text-sm text-[#6f5d52]">No on going tours.</p>
+                        @else
+                            <div class="mt-4 space-y-3">
+                                @foreach ($ongoingTours as $booking)
+                                    <article wire:key="ongoing-{{ $booking->id }}" class="rounded-xl border border-[#d4a563]/25 bg-[#fffaf2] p-4">
+                                        <p class="text-sm text-[#6f5d52]"><span class="font-semibold text-[#3f2d22]">Tourist:</span> {{ $booking->tourist->full_name ?? $booking->tourist->name ?? 'Unknown' }}</p>
+                                        <p class="mt-1 text-sm text-[#6f5d52]"><span class="font-semibold text-[#3f2d22]">Tour date:</span> {{ $booking->requested_date?->format('M d, Y') ?? '-' }}</p>
+                                        <p class="mt-1 text-sm text-[#6f5d52]"><span class="font-semibold text-[#3f2d22]">Tour title:</span> {{ $booking->tour->title ?? $booking->tour->name ?? 'Tour package' }}</p>
+                                    </article>
+                                @endforeach
                             </div>
-                        @endforeach
-                    </div>
-                @endif
+                        @endif
+                    </article>
+
+                    <article class="rounded-[22px] border border-[#6f3e2c]/15 bg-white p-6 shadow-[0_10px_22px_rgba(63,45,34,0.12)]">
+                        <h3 class="text-2xl font-black text-[#3f2d22]">Completed Tours</h3>
+
+                        @if ($completedTours->isEmpty())
+                            <p class="mt-4 rounded-xl border border-dashed border-[#d4a563]/35 bg-[#fff8eb] p-4 text-sm text-[#6f5d52]">No completed tours with feedback yet.</p>
+                        @else
+                            <div class="mt-4 space-y-3">
+                                @foreach ($completedTours as $completed)
+                                    <article wire:key="completed-{{ $completed->id }}" class="rounded-xl border border-[#d4a563]/25 bg-[#fffaf2] p-4">
+                                        <p class="text-sm text-[#6f5d52]"><span class="font-semibold text-[#3f2d22]">Tourist:</span> {{ $completed->tourist->full_name ?? $completed->tourist->name ?? 'Unknown' }}</p>
+                                        <p class="mt-1 text-sm text-[#6f5d52]"><span class="font-semibold text-[#3f2d22]">Tour date:</span> {{ $completed->booking?->booking_date?->format('M d, Y') ?? '-' }}</p>
+                                        <p class="mt-1 text-sm text-[#6f5d52]"><span class="font-semibold text-[#3f2d22]">Rating:</span> {{ str_repeat('★', (int) $completed->rating) }}{{ str_repeat('☆', 5 - (int) $completed->rating) }}</p>
+                                        <p class="mt-1 text-sm text-[#6f5d52]"><span class="font-semibold text-[#3f2d22]">Comment:</span> {{ $completed->review ?: 'No comment' }}</p>
+                                    </article>
+                                @endforeach
+                            </div>
+                        @endif
+                    </article>
+                </section>
+
+                <section class="grid gap-6 lg:grid-cols-2">
+                    <article class="rounded-[22px] border border-[#6f3e2c]/15 bg-white p-6 shadow-[0_10px_22px_rgba(63,45,34,0.12)]">
+                        <h3 class="text-2xl font-black text-[#3f2d22]">Declined Bookings</h3>
+
+                        @if ($declinedBookings->isEmpty())
+                            <p class="mt-4 rounded-xl border border-dashed border-[#d4a563]/35 bg-[#fff8eb] p-4 text-sm text-[#6f5d52]">No declined bookings.</p>
+                        @else
+                            <div class="mt-4 overflow-x-auto">
+                                <table class="min-w-full divide-y divide-[#ecd3ad] text-sm">
+                                    <thead class="bg-[#fff8eb]">
+                                        <tr>
+                                            <th class="px-3 py-2 text-left font-semibold text-[#3f2d22]">Tourist name</th>
+                                            <th class="px-3 py-2 text-left font-semibold text-[#3f2d22]">Tour date</th>
+                                            <th class="px-3 py-2 text-left font-semibold text-[#3f2d22]">Tour title</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-[#f0e0c4] bg-white">
+                                        @foreach ($declinedBookings as $booking)
+                                            <tr wire:key="declined-{{ $booking->id }}">
+                                                <td class="px-3 py-2 text-[#3f2d22]">{{ $booking->tourist->full_name ?? $booking->tourist->name ?? 'Unknown' }}</td>
+                                                <td class="px-3 py-2 text-[#6f5d52]">{{ $booking->requested_date?->format('M d, Y') ?? '-' }}</td>
+                                                <td class="px-3 py-2 text-[#6f5d52]">{{ $booking->tour->title ?? $booking->tour->name ?? 'Tour package' }}</td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @endif
+                    </article>
+
+                    <article class="rounded-[22px] border border-[#6f3e2c]/15 bg-white p-6 shadow-[0_10px_22px_rgba(63,45,34,0.12)]">
+                        <h3 class="text-2xl font-black text-[#3f2d22]">History Bookings</h3>
+
+                        @if ($historyBookings->isEmpty())
+                            <p class="mt-4 rounded-xl border border-dashed border-[#d4a563]/35 bg-[#fff8eb] p-4 text-sm text-[#6f5d52]">No history bookings.</p>
+                        @else
+                            <div class="mt-4 overflow-x-auto">
+                                <table class="min-w-full divide-y divide-[#ecd3ad] text-sm">
+                                    <thead class="bg-[#fff8eb]">
+                                        <tr>
+                                            <th class="px-3 py-2 text-left font-semibold text-[#3f2d22]">Tourist Name</th>
+                                            <th class="px-3 py-2 text-left font-semibold text-[#3f2d22]">Tour Date</th>
+                                            <th class="px-3 py-2 text-left font-semibold text-[#3f2d22]">Status</th>
+                                            <th class="px-3 py-2 text-left font-semibold text-[#3f2d22]">Rating</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-[#f0e0c4] bg-white">
+                                        @foreach ($historyBookings as $booking)
+                                            <tr wire:key="history-{{ $booking->id }}">
+                                                <td class="px-3 py-2 text-[#3f2d22]">{{ $booking->tourist->full_name ?? $booking->tourist->name ?? 'Unknown' }}</td>
+                                                <td class="px-3 py-2 text-[#6f5d52]">{{ $booking->requested_date?->format('M d, Y') ?? '-' }}</td>
+                                                <td class="px-3 py-2 text-[#6f5d52]">{{ ucfirst((string) $booking->status) }}</td>
+                                                <td class="px-3 py-2 text-[#6f5d52]">{{ $booking->booking?->review?->rating ? ((string) $booking->booking->review->rating).' ★' : '-' }}</td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @endif
+                    </article>
+                </section>
             </div>
+
+            <aside class="space-y-4 xl:sticky xl:top-24 xl:self-start">
+                <section class="rounded-[22px] border border-[#6f3e2c]/15 bg-white p-5 shadow-[0_14px_36px_rgba(63,45,34,0.14)]">
+                    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[#6f5d52]">Summary</p>
+
+                    <div class="mt-3 space-y-3">
+                        <div class="flex items-baseline justify-between border-b border-[#f0e0c4] pb-2">
+                            <span class="text-sm text-[#6f5d52]">Total Earnings</span>
+                            <span class="text-2xl font-black text-[#3f2d22]">₱{{ number_format((float) $totalEarnings, 0) }}</span>
+                        </div>
+                        <div class="flex items-baseline justify-between border-b border-[#f0e0c4] pb-2">
+                            <span class="text-sm text-[#6f5d52]">Average Ratings</span>
+                            <span class="text-xl font-black text-[#3f2d22]">{{ number_format($averageRatings, 1) }} ★</span>
+                        </div>
+                        <div class="flex items-baseline justify-between border-b border-[#f0e0c4] pb-2">
+                            <span class="text-sm text-[#6f5d52]">Total Feedbacks</span>
+                            <span class="text-xl font-black text-[#3f2d22]">{{ $totalFeedbacks }}</span>
+                        </div>
+                        <div class="flex items-baseline justify-between">
+                            <span class="text-sm text-[#6f5d52]">Total Bookings</span>
+                            <span class="text-xl font-black text-[#3f2d22]">{{ $totalBookings }}</span>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="rounded-[22px] border border-[#6f3e2c]/15 bg-white p-5 shadow-[0_10px_22px_rgba(63,45,34,0.12)]">
+                    <h3 class="text-xl font-black text-[#3f2d22]">Activity</h3>
+                    <div class="mt-3 grid gap-2 text-sm text-[#6f5d52]">
+                        <div class="inline-flex items-center justify-between rounded-xl border border-[#e7d2a9] bg-[#fff8eb] px-3 py-2">
+                            <span>Pending</span>
+                            <span class="font-bold text-[#3f2d22]">{{ $pendingBookings->count() }}</span>
+                        </div>
+                        <div class="inline-flex items-center justify-between rounded-xl border border-[#e7d2a9] bg-[#fff8eb] px-3 py-2">
+                            <span>On Going</span>
+                            <span class="font-bold text-[#3f2d22]">{{ $ongoingCount }}</span>
+                        </div>
+                        <div class="inline-flex items-center justify-between rounded-xl border border-[#e7d2a9] bg-[#fff8eb] px-3 py-2">
+                            <span>Completed</span>
+                            <span class="font-bold text-[#3f2d22]">{{ $completedCount }}</span>
+                        </div>
+                        <div class="inline-flex items-center justify-between rounded-xl border border-[#e7d2a9] bg-[#fff8eb] px-3 py-2">
+                            <span>Declined</span>
+                            <span class="font-bold text-[#3f2d22]">{{ $declinedCount }}</span>
+                        </div>
+                        <div class="inline-flex items-center justify-between rounded-xl border border-[#e7d2a9] bg-[#fff8eb] px-3 py-2">
+                            <span>History</span>
+                            <span class="font-bold text-[#3f2d22]">{{ $historyCount }}</span>
+                        </div>
+                    </div>
+                </section>
+            </aside>
         </div>
-
-        <!-- Optional Alerts Section -->
-        @if ($showCompletionReminder || $showVerificationNotice || $showRejectedNotice)
-            <div class="mt-8 space-y-4">
-                @if ($showCompletionReminder)
-                    <div class="rounded-lg border-l-4 border-[#7a5532] bg-[#ead9c6] p-4">
-                        <div class="flex">
-                            <div class="flex-shrink-0">
-                                <svg class="h-5 w-5 text-[#7a5532]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4v.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                            </div>
-                            <div class="ml-3">
-                                <p class="text-sm font-medium text-[#5b3a26]">Complete your profile to start accepting bookings!</p>
-                            </div>
-                        </div>
-                    </div>
-                @endif
-
-                @if ($showVerificationNotice)
-                    <div class="rounded-lg border-l-4 border-[#7a5532] bg-[#ead9c6] p-4">
-                        <div class="flex">
-                            <div class="flex-shrink-0">
-                                <svg class="h-5 w-5 text-[#7a5532]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                            </div>
-                            <div class="ml-3">
-                                <p class="text-sm font-medium text-[#5b3a26]">Your documents are under review. We'll notify you within 24-48 hours.</p>
-                            </div>
-                        </div>
-                    </div>
-                @endif
-
-                @if ($showRejectedNotice)
-                    <div class="rounded-lg border-l-4 border-red-500 bg-red-50 p-4">
-                        <div class="flex">
-                            <div class="flex-shrink-0">
-                                <svg class="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4v.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                            </div>
-                            <div class="ml-3">
-                                <p class="text-sm font-medium text-red-800">
-                                    <span class="font-semibold">Verification update: action needed.</span><br>
-                                    {{ $rejectionReason !== '' ? $rejectionReason : 'Please re-upload the required documents and update your profile.' }}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                @endif
-            </div>
-        @endif
     </div>
 </div>

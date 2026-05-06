@@ -56,7 +56,7 @@ it('shows request posts and listing controls on guide dashboard', function () {
     );
 
     actingAs($guide)
-        ->get(route('dashboard.guide'))
+        ->get(route('dashboard.guide', ['tab' => 'requests']))
         ->assertSuccessful()
         ->assertSee('Request Posts')
         ->assertSee('My Listings')
@@ -120,7 +120,7 @@ it('allows tour_guide role to access the guide dashboard', function () {
     ]);
 
     actingAs($guide)
-        ->get(route('dashboard.guide'))
+        ->get(route('dashboard.guide', ['tab' => 'requests']))
         ->assertSuccessful()
         ->assertSee('Request Posts')
         ->assertSee('My Listings');
@@ -198,7 +198,7 @@ it('shows only open and negotiating request posts in the guide request feed', fu
     ]);
 
     actingAs($guide)
-        ->get(route('dashboard.guide'))
+        ->get(route('dashboard.guide', ['tab' => 'requests']))
         ->assertSuccessful()
         ->assertSee('Open Request Card')
         ->assertSee('Negotiating Request Card')
@@ -330,6 +330,7 @@ it('publishes listing builder fields to the tour and keeps it out of featured to
         ->assertSuccessful()
         ->assertSee('Night Photography')
         ->assertSee('Mandarin')
+        ->assertSee(route('dashboard.guide.dashboard'))
         ->assertSee('storage/guide/tour-cover')
         ->assertSee('storage/guide/tour-gallery');
 

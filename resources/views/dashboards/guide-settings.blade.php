@@ -124,7 +124,7 @@
                 <hr class="my-6 h-0.5 border-t-0 bg-[#c69958]" />
                 <!-- Back to Dashboard Button (always bottom) -->
                         <div class="flex justify-end pt-8">
-                            <a href="{{ route('dashboard.guide') }}" class="inline-flex items-center rounded-lg bg-[#8f9d59] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#7f8d4d]">
+                            <a href="{{ route('dashboard.guide.dashboard') }}" class="inline-flex items-center rounded-lg bg-[#8f9d59] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#7f8d4d]">
                                 <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                                 </svg>

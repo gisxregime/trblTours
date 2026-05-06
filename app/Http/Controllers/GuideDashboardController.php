@@ -29,12 +29,16 @@ class GuideDashboardController extends Controller
         'Safety Support',
     ];
 
-    public function index(Request $request): View
+    public function index(Request $request): View|RedirectResponse
     {
         $user = $request->user();
 
         abort_unless($user !== null, 401);
         abort_unless(in_array((string) $user->role, ['guide', 'tour_guide'], true), 403);
+
+        if (! $request->has('tab')) {
+            return redirect()->route('dashboard.guide.dashboard');
+        }
 
         $requestPosts = TouristRequest::query()
             ->with([

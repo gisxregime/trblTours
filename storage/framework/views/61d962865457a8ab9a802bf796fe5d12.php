@@ -1568,7 +1568,7 @@
             <nav class="header-nav" aria-label="Primary navigation">
                 <a href="<?php echo e(route('explore-tours')); ?>">Explore Tours</a>
                 <a href="#tourist-tips">Become a Guide</a>
-                <a href="#why-choose-us">How It Works</a>
+                <a href="<?php echo e(route('how-it-works')); ?>">How It Works</a>
                 <a href="#why-choose-us">Safety Tips</a>
                 <select class="language-pill" aria-label="Language">
                     <option selected>English</option>

@@ -11,7 +11,7 @@
 <body class="min-h-screen bg-[#fffaf3] font-inter text-[#3e2a1f]">
     <header class="sticky top-0 z-40 border-b border-[#d4a563]/25 bg-[rgba(92,64,51,0.94)] backdrop-blur-sm">
         <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-            <a href="{{ route('dashboard.guide') }}" class="flex items-center gap-3">
+            <a href="{{ route('dashboard.guide.dashboard') }}" class="flex items-center gap-3">
                 <img src="{{ asset('images/tribaltours_icon.png') }}" alt="TrblTours Icon" class="h-10 w-10 rounded-full border border-[#d4a563]/50 bg-[#f6ecd8] object-cover shadow-md">
                 <span class="font-[Asimovian] text-2xl font-bold tracking-wide text-[#f8eed8]">TrblTours</span>
             </a>

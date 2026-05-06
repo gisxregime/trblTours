@@ -338,7 +338,7 @@
             <nav class="header-nav" aria-label="Primary navigation">
                 <a class="active" href="{{ route('explore-tours') }}">Explore Tours</a>
                 <a href="{{ url('/#tourist-tips') }}">Become a Guide</a>
-                <a href="{{ url('/#why-choose-us') }}">How It Works</a>
+                <a href="{{ route('how-it-works') }}">How It Works</a>
                 <a href="{{ url('/#why-choose-us') }}">Safety Tips</a>
             </nav>
         </div>

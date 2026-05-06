@@ -20,9 +20,7 @@
     <body class="font-sans antialiased">
         <div class="min-h-screen w-full bg-white">
             <main class="w-full">
-                <div class="mx-auto w-full max-w-xl px-4 sm:px-6 lg:px-8">
-                    {{ $slot }}
-                </div>
+                {{ $slot }}
             </main>
         </div>
 

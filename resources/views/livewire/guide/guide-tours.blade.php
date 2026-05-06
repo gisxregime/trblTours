@@ -7,7 +7,7 @@
                     <p class="mt-1 text-sm text-slate-500">Design your tour listing with a clean marketplace card preview.</p>
                 </div>
 
-                <a href="{{ route('dashboard.guide') }}" class="inline-flex items-center rounded-lg border border-[#d4a563]/45 bg-[#fff7ec] px-4 py-2 text-sm font-semibold text-[#7a5532] transition hover:bg-[#f7ead7]">
+                <a href="{{ route('dashboard.guide.dashboard') }}" class="inline-flex items-center rounded-lg border border-[#d4a563]/45 bg-[#fff7ec] px-4 py-2 text-sm font-semibold text-[#7a5532] transition hover:bg-[#f7ead7]">
                     Back to Dashboard
                 </a>
             </div>

@@ -12,8 +12,8 @@ it('redirects each role from generic dashboard to their own dashboard', function
         ->assertRedirect(route($expectedRoute, absolute: false));
 })->with([
     ['tourist', 'dashboard.tourist'],
-    ['guide', 'dashboard.guide'],
-    ['tour_guide', 'dashboard.guide'],
+    ['guide', 'dashboard.guide.dashboard'],
+    ['tour_guide', 'dashboard.guide.dashboard'],
     ['admin', 'dashboard.admin'],
 ]);
 
@@ -25,8 +25,8 @@ it('allows users to access their own role dashboard', function (string $role, st
         ->assertSuccessful();
 })->with([
     ['tourist', 'dashboard.tourist'],
-    ['guide', 'dashboard.guide'],
-    ['tour_guide', 'dashboard.guide'],
+    ['guide', 'dashboard.guide.dashboard'],
+    ['tour_guide', 'dashboard.guide.dashboard'],
     ['admin', 'dashboard.admin'],
 ]);
 

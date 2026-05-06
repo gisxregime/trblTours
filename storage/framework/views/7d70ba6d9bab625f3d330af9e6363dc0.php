@@ -339,7 +339,7 @@
             <nav class="header-nav" aria-label="Primary navigation">
                 <a class="active" href="<?php echo e(route('explore-tours')); ?>">Explore Tours</a>
                 <a href="<?php echo e(url('/#tourist-tips')); ?>">Become a Guide</a>
-                <a href="<?php echo e(url('/#why-choose-us')); ?>">How It Works</a>
+                <a href="<?php echo e(route('how-it-works')); ?>">How It Works</a>
                 <a href="<?php echo e(url('/#why-choose-us')); ?>">Safety Tips</a>
             </nav>
         </div>

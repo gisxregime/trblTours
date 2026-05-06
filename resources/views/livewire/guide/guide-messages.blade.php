@@ -7,7 +7,7 @@
                     <p class="mt-1 text-sm text-slate-600">Chat with tourists, respond quickly, and keep your bookings moving.</p>
                 </div>
 
-                <a href="{{ route('dashboard.guide') }}" class="inline-flex items-center rounded-lg bg-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-300">
+                <a href="{{ route('dashboard.guide.dashboard') }}" class="inline-flex items-center rounded-lg bg-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-300">
                     Back to Dashboard
                 </a>
             </div>

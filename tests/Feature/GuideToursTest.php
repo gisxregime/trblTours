@@ -519,7 +519,7 @@ it('redirects to guide dashboard after updating a tour', function () {
         ->set('form.summary', 'Updated summary text.')
         ->call('save')
         ->assertHasNoErrors()
-        ->assertRedirect(route('dashboard.guide'));
+        ->assertRedirect(route('dashboard.guide.dashboard'));
 });
 
 it('allows a guide to replace a wrong uploaded photo', function () {

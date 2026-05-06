@@ -816,14 +816,19 @@
             ? $source
             : 'explore';
 
+        $viewerRole = (string) (auth()->user()?->role ?? '');
+        $viewerIsGuide = in_array($viewerRole, ['guide', 'tour_guide'], true);
+
         $backHref = match ($sourceContext) {
-            'dashboard' => route('dashboard.tourist'),
+            'dashboard' => $viewerIsGuide
+                ? route('dashboard.guide.dashboard')
+                : route('dashboard.tourist'),
             'home' => url('/'),
             default => route('explore-tours'),
         };
 
         $backLabel = match ($sourceContext) {
-            'dashboard' => 'Back',
+            'dashboard' => $viewerIsGuide ? 'Back' : 'Back',
             'home' => 'Back to Home',
             default => 'Back to Explore Tours',
         };

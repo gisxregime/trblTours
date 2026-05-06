@@ -119,7 +119,7 @@
 
     <!-- Back to Dashboard button at the very bottom -->
     <div class="flex justify-end mt-10">
-        <a href="{{ route('dashboard.guide') }}" class="inline-flex items-center rounded-lg border border-[#d4a563]/45 bg-[#d4a563] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#bf9155]">
+        <a href="{{ route('dashboard.guide.dashboard') }}" class="inline-flex items-center rounded-lg border border-[#d4a563]/45 bg-[#d4a563] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#bf9155]">
             Back to Dashboard
         </a>
     </div>

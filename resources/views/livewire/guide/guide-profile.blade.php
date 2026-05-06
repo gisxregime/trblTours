@@ -276,7 +276,7 @@
                         <a href="{{ route('dashboard.guide.profile.edit') }}" class="inline-flex items-center justify-center rounded-lg border border-[#d4a563] bg-white px-4 py-2 text-sm font-semibold text-[#7a5532] transition hover:bg-[#fff7ec]">
                             Edit Profile
                         </a>
-                        <a href="{{ route('dashboard.guide') }}" class="inline-flex items-center justify-center rounded-lg border border-[#d4a563] bg-[#d4a563] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#bf9155]">
+                        <a href="{{ route('dashboard.guide.dashboard') }}" class="inline-flex items-center justify-center rounded-lg border border-[#d4a563] bg-[#d4a563] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#bf9155]">
                             Back to Dashboard
                         </a>
                     </div>

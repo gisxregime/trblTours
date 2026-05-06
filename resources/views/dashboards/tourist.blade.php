@@ -340,6 +340,10 @@
                             <i class="fa-solid fa-heart w-4 text-center"></i>
                             <span>Likes</span>
                         </a>
+                        <a href="{{ route('how-it-works') }}" class="flex items-center gap-2 px-4 py-2.5 text-sm text-[#5a3c2a] transition hover:bg-[#f7ecd7]">
+                            <i class="fa-solid fa-circle-info w-4 text-center"></i>
+                            <span>How It Works</span>
+                        </a>
                         <a href="{{ route('settings.edit') }}" class="flex items-center gap-2 px-4 py-2.5 text-sm text-[#5a3c2a] transition hover:bg-[#f7ecd7]">
                             <i class="fa-solid fa-gear w-4 text-center"></i>
                             <span>Settings</span>

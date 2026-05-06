@@ -196,13 +196,17 @@
                             <i class="fa-solid fa-user w-4 text-center"></i>
                             <span>Profile</span>
                         </a>
-                        <a href="{{ route('dashboard.guide') }}" class="flex items-center gap-2 px-4 py-2.5 text-sm text-[#5a3c2a] transition hover:bg-[#f7ecd7]">
+                        <a href="{{ route('dashboard.guide.dashboard') }}" class="flex items-center gap-2 px-4 py-2.5 text-sm text-[#5a3c2a] transition hover:bg-[#f7ecd7]">
                             <i class="fa-solid fa-compass w-4 text-center"></i>
                             <span>Dashboard</span>
                         </a>
                         <a href="{{ route('dashboard.messages') }}" class="flex items-center gap-2 px-4 py-2.5 text-sm text-[#5a3c2a] transition hover:bg-[#f7ecd7]">
                             <i class="fa-solid fa-envelope w-4 text-center"></i>
                             <span>Messages</span>
+                        </a>
+                        <a href="{{ route('how-it-works') }}" class="flex items-center gap-2 px-4 py-2.5 text-sm text-[#5a3c2a] transition hover:bg-[#f7ecd7]">
+                            <i class="fa-solid fa-circle-info w-4 text-center"></i>
+                            <span>How It Works</span>
                         </a>
                         <a href="{{ route('settings.edit') }}" class="flex items-center gap-2 px-4 py-2.5 text-sm text-[#5a3c2a] transition hover:bg-[#f7ecd7]">
                             <i class="fa-solid fa-gear w-4 text-center"></i>
@@ -454,17 +458,16 @@
                                     </div>
 
                                     <a href="{{ route('tours.show', ['tour' => $listing, 'from' => 'dashboard']) }}" class="mt-3 inline-flex h-10 w-full items-center justify-center rounded-lg border border-[#4f7740] bg-[#5f8a46] px-2 text-center text-xs font-semibold text-[#f7fff4] transition hover:bg-[#4f7740]">
-                                        Open Full Listing Page
+                                        View Listing
                                     </a>
 
-                                    <div class="mt-3 grid grid-cols-3 items-stretch gap-2">
+                                    <div class="mt-3 grid grid-cols-2 items-stretch gap-2">
                                         <a href="{{ route('dashboard.guide.tours', ['edit' => $listing->id]) }}" class="inline-flex h-10 w-full items-center justify-center rounded-lg border border-[#d4a563]/45 bg-[#fff7ec] px-2 text-center text-xs font-semibold text-[#7a5532] transition hover:bg-[#f7ead7]">Edit</a>
                                         <form method="POST" action="{{ route('dashboard.guide.listings.destroy', $listing) }}" class="h-10 w-full">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="inline-flex h-full w-full items-center justify-center rounded-lg border border-[#e1b3ad] bg-[#fdf0ee] px-2 text-center text-xs font-semibold text-[#a4554d] transition hover:bg-[#f9e3e0]">Delete</button>
                                         </form>
-                                        <a href="{{ route('dashboard.guide.requests') }}" class="inline-flex h-10 w-full items-center justify-center rounded-lg border border-[#4f7740] bg-[#5f8a46] px-2 text-center text-xs font-semibold text-[#f7fff4] transition hover:bg-[#4f7740]">View Bookings</a>
                                     </div>
                                 </div>
                             </article>

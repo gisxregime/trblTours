@@ -99,7 +99,7 @@ class GuideTours extends Component
         }
 
         if ($wasEditing) {
-            $this->redirectRoute('dashboard.guide');
+            $this->redirectRoute('dashboard.guide.dashboard');
 
             return;
         }
