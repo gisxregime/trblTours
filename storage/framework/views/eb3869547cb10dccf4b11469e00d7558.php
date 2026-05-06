@@ -610,12 +610,14 @@ if (isset($__slots)) unset($__slots);
                             <div class="mt-3 grid gap-3 sm:grid-cols-2">
                                 <div>
                                     <label class="mb-1 block text-xs font-semibold uppercase tracking-[0.08em] text-[#6b5a49]" for="listing_duration_label">Duration</label>
-                                    <select id="listing_duration_label" name="duration_label" x-model="listingForm.durationLabel" class="w-full rounded-xl border border-[#deceb7] bg-white px-3 py-2.5 text-sm text-[#4f4134] focus:border-[#b9915f] focus:outline-none focus:ring-2 focus:ring-[#e8d6bc]">
-                                        <option value="2 hrs">2 hrs</option>
-                                        <option value="Half-day">Half-day</option>
-                                        <option value="Full-day">Full-day</option>
-                                        <option value="Multi-day">Multi-day</option>
-                                    </select>
+                                    <input
+                                        id="listing_duration_label"
+                                        name="duration_label"
+                                        type="text"
+                                        x-model="listingForm.durationLabel"
+                                        placeholder="e.g. 3 hours, 1 day, 2 nights"
+                                        class="w-full rounded-xl border border-[#deceb7] bg-white px-3 py-2.5 text-sm text-[#4f4134] focus:border-[#b9915f] focus:outline-none focus:ring-2 focus:ring-[#e8d6bc]"
+                                    >
                                 </div>
 
                                 <div>
@@ -927,7 +929,7 @@ if (isset($__slots)) unset($__slots);
                     shortDescription: '',
                     guideName: config.guideName ?? 'Certified Local Guide',
                     guideBio: config.guideBio ?? 'Certified Local Guide',
-                    durationLabel: 'Full-day',
+                    durationLabel: '',
                     activityTypes: ['Walking'],
                     difficulty: 'Flexible',
                     minGuests: 1,
@@ -981,7 +983,7 @@ if (isset($__slots)) unset($__slots);
                         shortDescription: '',
                         guideName: config.guideName ?? 'Certified Local Guide',
                         guideBio: config.guideBio ?? 'Certified Local Guide',
-                        durationLabel: 'Full-day',
+                        durationLabel: '',
                         activityTypes: ['Walking'],
                         difficulty: 'Flexible',
                         minGuests: 1,
@@ -1106,6 +1108,7 @@ if (isset($__slots)) unset($__slots);
                         { label: 'Cover image is required', valid: this.coverImageFile !== null },
                         { label: 'Tour title is required', valid: this.listingForm.title.trim() !== '' },
                         { label: 'Location is required', valid: this.listingForm.location.trim() !== '' && this.listingForm.region.trim() !== '' },
+                        { label: 'Duration is required', valid: this.listingForm.durationLabel.trim() !== '' },
                         { label: 'Short description is required', valid: this.listingForm.shortDescription.trim() !== '' },
                         { label: 'Base price is required', valid: Number(this.listingForm.basePrice) > 0 },
                         { label: 'At least 3 gallery photos', valid: this.galleryImageFiles.length >= 3 },
