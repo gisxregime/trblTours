@@ -98,7 +98,6 @@
                             <div class="mb-4 border-b border-[#eadcc3] pb-4">
                                 <p class="text-lg font-semibold text-[#3f2d22]"
                                     x-text="activeConversation.participant.name"></p>
-                                <p class="text-sm text-[#6f5d52]">Real-time conversation</p>
                             </div>
 
                             <div x-ref="messagesContainer" class="max-h-[460px] space-y-3 overflow-y-auto pr-1">

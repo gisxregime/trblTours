@@ -1549,6 +1549,8 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        <?php echo $__env->make('partials.tour-request-modal-styles', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
     </style>
     <?php echo \Livewire\Mechanisms\FrontendAssets\FrontendAssets::styles(); ?>
 
@@ -1717,48 +1719,7 @@ if (isset($__slots)) unset($__slots);
             </div>
         </section>
 
-        <div class="request-modal-overlay" id="requestModal" aria-hidden="true">
-            <div class="request-modal" role="dialog" aria-modal="true" aria-labelledby="requestModalTitle">
-                <div class="request-modal-header">
-                    <h3 class="request-modal-title hero-font" id="requestModalTitle">Create Your Request</h3>
-                    <button class="request-modal-close" type="button" id="closeRequestModal" aria-label="Close">
-                        ×
-                    </button>
-                </div>
-
-                <form class="request-form-grid" action="#" method="post">
-                    <div class="request-form-field">
-                        <label for="requestTitle">Request Title</label>
-                        <input class="request-input" id="requestTitle" name="request_title" type="text" placeholder="e.g. 3-day island and food trip" required>
-                    </div>
-
-                    <div class="request-form-field">
-                        <label for="requestDuration">Duration</label>
-                        <input class="request-input" id="requestDuration" name="duration" type="text" placeholder="e.g. 3 days">
-                    </div>
-
-                    <div class="request-form-field">
-                        <label for="requestBudget">Budget</label>
-                        <input class="request-input" id="requestBudget" name="budget" type="text" placeholder="e.g. PHP 8,000">
-                    </div>
-
-                    <div class="request-form-field">
-                        <label for="requestLocation">Location</label>
-                        <input class="request-input" id="requestLocation" name="location" type="text" placeholder="e.g. Palawan">
-                    </div>
-
-                    <div class="request-form-field">
-                        <label for="requestDescription">Description</label>
-                        <textarea class="request-textarea" id="requestDescription" name="description" placeholder="Share your interests and what kind of local experience you want."></textarea>
-                    </div>
-
-                    <div class="request-form-actions">
-                        <button type="button" class="btn hero-cta-ghost" id="cancelRequestModal">Cancel</button>
-                        <button type="submit" class="btn hero-cta-primary">Submit Request</button>
-                    </div>
-                </form>
-            </div>
-        </div>
+        <?php echo $__env->make('partials.tour-request-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
         <section id="tourist-tips" class="tips">
             <div class="container">
@@ -1973,54 +1934,6 @@ if (isset($__slots)) unset($__slots);
 
             initFadeCarousel('heroCarousel', '.hero-slide', 4000);
             initFadeCarousel('favoritesCarousel', '.favorite-card', 1800);
-
-            const openRequestModalButton = document.getElementById('openRequestModal');
-            const requestModal = document.getElementById('requestModal');
-            const closeRequestModalButton = document.getElementById('closeRequestModal');
-            const cancelRequestModalButton = document.getElementById('cancelRequestModal');
-            const requestForm = requestModal?.querySelector('form');
-
-            if (openRequestModalButton && requestModal && closeRequestModalButton && cancelRequestModalButton) {
-                const setRequestModalOpen = (isOpen) => {
-                    requestModal.classList.toggle('open', isOpen);
-                    requestModal.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
-                    document.body.style.overflow = isOpen ? 'hidden' : '';
-                };
-
-                openRequestModalButton.addEventListener('click', () => {
-                    setRequestModalOpen(true);
-                });
-
-                closeRequestModalButton.addEventListener('click', () => {
-                    setRequestModalOpen(false);
-                });
-
-                cancelRequestModalButton.addEventListener('click', () => {
-                    setRequestModalOpen(false);
-                });
-
-                requestModal.addEventListener('click', (event) => {
-                    if (event.target === requestModal) {
-                        setRequestModalOpen(false);
-                    }
-                });
-
-                document.addEventListener('keydown', (event) => {
-                    if (event.key === 'Escape') {
-                        setRequestModalOpen(false);
-                    }
-                });
-
-                requestForm?.addEventListener('submit', (event) => {
-                    event.preventDefault();
-
-                    <?php if(auth()->guard()->guest()): ?>
-                        window.location.href = '<?php echo e(route('signup.start')); ?>';
-                    <?php else: ?>
-                        setRequestModalOpen(false);
-                    <?php endif; ?>
-                });
-            }
 
             const locationTrigger = document.getElementById('locationTrigger');
             const accommodationInput = document.getElementById('accommodation');
@@ -2317,6 +2230,8 @@ if (isset($__slots)) unset($__slots);
             }
         })();
     </script>
+
+    <?php echo $__env->make('partials.tour-request-modal-script', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
     <?php echo \Livewire\Mechanisms\FrontendAssets\FrontendAssets::scripts(); ?>
 
 </body>

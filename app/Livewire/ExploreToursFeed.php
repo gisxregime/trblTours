@@ -5,6 +5,8 @@ namespace App\Livewire;
 use App\Models\Tour;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
 use Livewire\Component;
@@ -52,6 +54,39 @@ class ExploreToursFeed extends Component
 
     public function filter(): void
     {
+        $this->applyFilters();
+    }
+
+    public function updatedLocationPath(): void
+    {
+        if (! $this->showFilters) {
+            return;
+        }
+
+        $this->resetPage();
+    }
+
+    public function updatedSortBy(string $value): void
+    {
+        if (! in_array($value, ['latest', 'price_low_high', 'price_high_low'], true)) {
+            $this->sortBy = 'latest';
+        }
+
+        if (! $this->showFilters) {
+            return;
+        }
+
+        $this->resetPage();
+    }
+
+    public function applyFilters(): void
+    {
+        $this->locationPath = trim($this->locationPath);
+
+        if (! in_array($this->sortBy, ['latest', 'price_low_high', 'price_high_low'], true)) {
+            $this->sortBy = 'latest';
+        }
+
         $this->resetPage();
     }
 
@@ -65,6 +100,10 @@ class ExploreToursFeed extends Component
     {
         $tourQuery = Tour::query()
             ->with(['marketplaceGuide:id,name,full_name,role,status']);
+
+        $availableSearchColumns = $this->availableSearchColumns();
+        $canSearchGuideRegion = Schema::hasColumn('users', 'region');
+        $availableSortPriceColumns = $this->availablePriceColumns();
 
         if (Auth::check() && Schema::hasTable('tour_likes')) {
             $tourQuery->withExists([
@@ -81,25 +120,105 @@ class ExploreToursFeed extends Component
         }
 
         $tours = $tourQuery
-            ->when($this->locationPath !== '', function ($query) {
-                $query->where(function ($tourQuery) {
-                    $tourQuery->where('region', 'like', '%'.$this->locationPath.'%')
-                        ->orWhere('city', 'like', '%'.$this->locationPath.'%');
+            ->when($this->locationPath !== '', function ($query) use ($availableSearchColumns, $canSearchGuideRegion): void {
+                $searchTerm = trim($this->locationPath);
+                $searchTokens = collect(preg_split('/[\s,]+/', $searchTerm))
+                    ->filter(fn (mixed $token): bool => is_string($token) && $token !== '')
+                    ->map(fn (string $token): string => mb_strtolower(trim($token)))
+                    ->filter(fn (string $token): bool => $token !== '')
+                    ->values();
+
+                if ($searchTokens->isEmpty()) {
+                    return;
+                }
+
+                $searchableColumns = $availableSearchColumns;
+                $searchGuideRegion = $canSearchGuideRegion;
+
+                if ($searchableColumns->isEmpty() && ! $searchGuideRegion) {
+                    return;
+                }
+
+                $searchTokens->each(function (string $token) use ($query, $searchableColumns, $searchGuideRegion): void {
+                    $query->where(function ($tourQuery) use ($token, $searchableColumns, $searchGuideRegion): void {
+                        $pattern = '%'.$token.'%';
+
+                        $hasPreviousCondition = false;
+
+                        foreach ($searchableColumns as $column) {
+                            if (! $hasPreviousCondition) {
+                                $tourQuery->whereRaw('LOWER('.$column.') LIKE ?', [$pattern]);
+                                $hasPreviousCondition = true;
+
+                                continue;
+                            }
+
+                            $tourQuery->orWhereRaw('LOWER('.$column.') LIKE ?', [$pattern]);
+                        }
+
+                        if ($searchGuideRegion) {
+                            if ($hasPreviousCondition) {
+                                $tourQuery->orWhereHas('marketplaceGuide', function (Builder $guideQuery) use ($pattern): void {
+                                    $guideQuery->whereRaw('LOWER(region) LIKE ?', [$pattern]);
+                                });
+
+                                return;
+                            }
+
+                            $tourQuery->whereHas('marketplaceGuide', function (Builder $guideQuery) use ($pattern): void {
+                                $guideQuery->whereRaw('LOWER(region) LIKE ?', [$pattern]);
+                            });
+                        }
+                    });
                 });
             })
             ->when($this->sortBy === 'price_low_high', function ($query) {
-                $query->orderBy('price_per_person', 'asc');
+                $this->applyPriceSort($query, $this->availablePriceColumns(), 'asc');
             })
             ->when($this->sortBy === 'price_high_low', function ($query) {
-                $query->orderBy('price_per_person', 'desc');
-            }, function ($query) {
+                $this->applyPriceSort($query, $this->availablePriceColumns(), 'desc');
+            }, function ($query): void {
                 $query->latest();
             })
+            ->when(
+                in_array($this->sortBy, ['price_low_high', 'price_high_low'], true) && $availableSortPriceColumns->isNotEmpty(),
+                fn (Builder $query): Builder => $query->latest(),
+            )
             ->paginate(9);
 
         return view('livewire.explore-tours-feed', [
             'tours' => $tours,
         ]);
+    }
+
+    private function availablePriceColumns(): Collection
+    {
+        // Keep sort order consistent with displayed card pricing fallback.
+        return collect(['price', 'price_per_person', 'base_price', 'budget'])
+            ->filter(fn (string $column): bool => Schema::hasColumn('tours', $column))
+            ->values();
+    }
+
+    private function availableSearchColumns(): Collection
+    {
+        return collect(['region', 'city', 'title', 'name', 'summary', 'description'])
+            ->filter(fn (string $column): bool => Schema::hasColumn('tours', $column))
+            ->values();
+    }
+
+    private function applyPriceSort(Builder|QueryBuilder $query, Collection $columns, string $direction): void
+    {
+        if ($columns->isEmpty()) {
+            return;
+        }
+
+        if ($columns->count() === 1) {
+            $query->orderBy((string) $columns->first(), $direction);
+
+            return;
+        }
+
+        $query->orderByRaw('COALESCE('.$columns->implode(', ').', 0) '.$direction);
     }
 
     private function curatedFeaturedTours(Builder $tourQuery)

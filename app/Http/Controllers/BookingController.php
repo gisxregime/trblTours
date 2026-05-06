@@ -45,6 +45,9 @@ class BookingController extends Controller
 
         $requestedDate = (string) $validated['booking_date'];
         $availability = null;
+        $slotLimit = null;
+        $reservedSlots = 0;
+        $remainingSlots = null;
 
         if (Schema::hasTable('guide_availability')) {
             $availabilityQuery = GuideAvailability::query()
@@ -62,6 +65,46 @@ class BookingController extends Controller
 
                 if ($isUnavailable) {
                     $errorMessage = 'Selected date is unavailable. Please choose a different date from the availability list.';
+
+                    if ($request->expectsJson()) {
+                        return response()->json([
+                            'message' => $errorMessage,
+                        ], 422);
+                    }
+
+                    return back()->withErrors(['booking_date' => $errorMessage])->withInput();
+                }
+
+                $slotLimit = $availability->slots !== null ? (int) $availability->slots : null;
+
+                if ($slotLimit !== null && Schema::hasTable('booking_requests')) {
+                    $reservedSlots = (int) BookingRequest::query()
+                        ->where('guide_id', $guideId)
+                        ->whereDate('requested_date', $requestedDate)
+                        ->whereIn('status', ['pending', 'accepted'])
+                        ->sum('group_size');
+
+                    $remainingSlots = max($slotLimit - $reservedSlots, 0);
+                }
+
+                $requestedGroupSize = (int) $validated['group_size'];
+
+                if ($availability->status === 'limited_slots' && ($slotLimit === null || $slotLimit <= 0)) {
+                    $errorMessage = 'Selected date has no configured slot capacity. Please choose another available date.';
+
+                    if ($request->expectsJson()) {
+                        return response()->json([
+                            'message' => $errorMessage,
+                        ], 422);
+                    }
+
+                    return back()->withErrors(['booking_date' => $errorMessage])->withInput();
+                }
+
+                if ($remainingSlots !== null && $requestedGroupSize > $remainingSlots) {
+                    $errorMessage = $remainingSlots > 0
+                        ? 'Only '.$remainingSlots.' slot'.($remainingSlots === 1 ? '' : 's').' remaining on this date. Please reduce group size or pick another date.'
+                        : 'Selected date is fully booked. Please choose a different available date.';
 
                     if ($request->expectsJson()) {
                         return response()->json([

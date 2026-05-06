@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\BookingRequest;
 use App\Models\GuideAvailability;
 use App\Models\Tour;
 use App\Models\User;
@@ -213,6 +214,114 @@ test('tourist can submit booking on available date from guide availability', fun
         'guide_id' => $guide->id,
         'tour_id' => $tour->id,
         'total_price' => 7000,
+        'status' => 'pending',
+    ]);
+});
+
+test('tourist cannot book limited slot date when requested group exceeds remaining capacity', function () {
+    Notification::fake();
+
+    $tourist = User::factory()->create(['role' => 'tourist']);
+    $existingTourist = User::factory()->create(['role' => 'tourist']);
+    $guide = User::factory()->create(['role' => 'guide']);
+
+    $tour = Tour::query()->create([
+        'guide_id' => $guide->id,
+        'title' => 'Apo Reef Day Run',
+        'region' => 'Mimaropa',
+        'summary' => str_repeat('Guided reef exploration with safety support.', 3),
+        'duration_label' => 'Full-day',
+        'price_per_person' => 2800,
+        'is_featured' => true,
+        'available_on' => now()->addDays(5)->format('Y-m-d'),
+    ]);
+
+    $limitedDate = now()->addDays(12)->format('Y-m-d');
+
+    GuideAvailability::query()->create([
+        'guide_id' => $guide->id,
+        'date' => $limitedDate,
+        'status' => 'limited_slots',
+        'slots' => 4,
+    ]);
+
+    BookingRequest::query()->create([
+        'tourist_id' => $existingTourist->id,
+        'guide_id' => $guide->id,
+        'tour_id' => $tour->id,
+        'requested_date' => $limitedDate,
+        'group_size' => 3,
+        'total_price' => 8400,
+        'status' => 'pending',
+    ]);
+
+    actingAs($tourist);
+
+    $response = post(route('bookings.store'), [
+        'tour_id' => $tour->id,
+        'booking_date' => $limitedDate,
+        'group_size' => 2,
+    ]);
+
+    $response
+        ->assertRedirect()
+        ->assertSessionHasErrors('booking_date');
+});
+
+test('tourist can book limited slot date when remaining capacity is enough', function () {
+    Notification::fake();
+
+    $tourist = User::factory()->create(['role' => 'tourist']);
+    $existingTourist = User::factory()->create(['role' => 'tourist']);
+    $guide = User::factory()->create(['role' => 'guide']);
+
+    $tour = Tour::query()->create([
+        'guide_id' => $guide->id,
+        'title' => 'Siquijor Coastal Drive',
+        'region' => 'Central Visayas',
+        'summary' => str_repeat('Coastal route with heritage and beach stops.', 3),
+        'duration_label' => 'Full-day',
+        'price_per_person' => 2600,
+        'is_featured' => true,
+        'available_on' => now()->addDays(5)->format('Y-m-d'),
+    ]);
+
+    $limitedDate = now()->addDays(13)->format('Y-m-d');
+
+    GuideAvailability::query()->create([
+        'guide_id' => $guide->id,
+        'date' => $limitedDate,
+        'status' => 'limited_slots',
+        'slots' => 6,
+    ]);
+
+    BookingRequest::query()->create([
+        'tourist_id' => $existingTourist->id,
+        'guide_id' => $guide->id,
+        'tour_id' => $tour->id,
+        'requested_date' => $limitedDate,
+        'group_size' => 2,
+        'total_price' => 5200,
+        'status' => 'pending',
+    ]);
+
+    actingAs($tourist);
+
+    $response = post(route('bookings.store'), [
+        'tour_id' => $tour->id,
+        'booking_date' => $limitedDate,
+        'group_size' => 4,
+    ]);
+
+    $response
+        ->assertRedirect()
+        ->assertSessionHas('status', 'Booking request sent to guide! You\'ll be notified soon.');
+
+    assertDatabaseHas('booking_requests', [
+        'tourist_id' => $tourist->id,
+        'guide_id' => $guide->id,
+        'tour_id' => $tour->id,
+        'group_size' => 4,
         'status' => 'pending',
     ]);
 });

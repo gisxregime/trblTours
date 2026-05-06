@@ -122,7 +122,6 @@ class GuideDashboardController extends Controller
             'included' => ['nullable', 'array', 'max:20'],
             'included.*' => ['string', 'max:120'],
             'exclusions_text' => ['nullable', 'string', 'max:1200'],
-            'booking_date' => ['required', 'date', 'after_or_equal:today'],
             'start_time' => ['nullable', 'date_format:H:i'],
             'end_time' => ['nullable', 'date_format:H:i'],
             'instant_book' => ['nullable', 'boolean'],
@@ -181,7 +180,6 @@ class GuideDashboardController extends Controller
 
         $priceType = (string) $validated['price_type'];
         $basePrice = (float) $validated['base_price'];
-        $bookingDate = (string) $validated['booking_date'];
         $normalizedDifficulty = $this->normalizeDifficulty((string) ($validated['difficulty'] ?? 'Easy'));
 
         $metadata = [
@@ -192,7 +190,6 @@ class GuideDashboardController extends Controller
             'weekend_rate' => isset($validated['weekend_rate']) ? (float) $validated['weekend_rate'] : null,
             'holiday_rate' => isset($validated['holiday_rate']) ? (float) $validated['holiday_rate'] : null,
             'languages_spoken' => $languagesSpoken->all(),
-            'booking_date' => $bookingDate,
             'start_time' => $validated['start_time'] ?? null,
             'end_time' => $validated['end_time'] ?? null,
             'instant_book' => $request->boolean('instant_book'),
@@ -234,7 +231,7 @@ class GuideDashboardController extends Controller
             'full_itinerary' => $fullItinerary,
             'inclusions' => $inclusions,
             'exclusions' => $validated['exclusions_text'] ?? null,
-            'available_on' => $bookingDate,
+            'available_on' => null,
             'pricing_tiers' => $metadata,
             'blackout_dates' => [],
             'gallery_images' => $galleryImages,

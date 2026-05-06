@@ -320,6 +320,8 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        <?php echo $__env->make('partials.tour-request-modal-styles', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
     </style>
     <?php echo \Livewire\Mechanisms\FrontendAssets\FrontendAssets::styles(); ?>
 
@@ -370,6 +372,8 @@ if (isset($__slots)) unset($__slots);
         </section>
     </main>
 
+    <?php echo $__env->make('partials.tour-request-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+
     <script>
         (() => {
             const siteHeader = document.querySelector('.site-header');
@@ -386,6 +390,8 @@ if (isset($__slots)) unset($__slots);
             updateHeaderOnScroll();
         })();
     </script>
+
+    <?php echo $__env->make('partials.tour-request-modal-script', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
     <?php echo \Livewire\Mechanisms\FrontendAssets\FrontendAssets::scripts(); ?>
 
 </body>

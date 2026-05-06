@@ -19,6 +19,7 @@ use App\Livewire\Guide\GuideBookingRequests;
 use App\Livewire\Guide\GuideMessages;
 use App\Livewire\Guide\GuideProfile;
 use App\Livewire\Guide\GuideTours;
+use App\Models\BookingRequest;
 use App\Models\GuideAvailability;
 use App\Models\Tour;
 use Illuminate\Support\Carbon;
@@ -55,7 +56,44 @@ Route::get('/tours/{tour}', function (Tour $tour) {
             ->whereDate('date', '>=', now()->toDateString())
             ->orderBy('date')
             ->limit(120)
-            ->get(['date', 'status', 'note', 'special_price']);
+            ->get(['date', 'status', 'slots', 'note', 'special_price']);
+
+        $reservedSlotsByDate = collect();
+        if (Schema::hasTable('booking_requests')) {
+            $reservedSlotsByDate = BookingRequest::query()
+                ->where('guide_id', (int) $tour->guide_id)
+                ->whereDate('requested_date', '>=', now()->toDateString())
+                ->whereIn('status', ['pending', 'accepted'])
+                ->selectRaw('requested_date, SUM(group_size) as reserved_slots')
+                ->groupBy('requested_date')
+                ->pluck('reserved_slots', 'requested_date');
+        }
+
+        $availabilityOptions = $availabilityOptions->map(function (GuideAvailability $option) use ($reservedSlotsByDate): array {
+            $dateValue = $option->date;
+            $date = $dateValue instanceof Carbon
+                ? $dateValue->toDateString()
+                : Carbon::parse((string) $dateValue)->toDateString();
+
+            $slotLimit = $option->slots !== null ? (int) $option->slots : null;
+            $reservedSlots = (int) ($reservedSlotsByDate[$date] ?? 0);
+            $remainingSlots = $slotLimit !== null ? max($slotLimit - $reservedSlots, 0) : null;
+
+            $status = (string) $option->status;
+            if ($status === 'limited_slots' && $remainingSlots !== null && $remainingSlots <= 0) {
+                $status = 'fully_booked';
+            }
+
+            return [
+                'date' => $date,
+                'status' => $status,
+                'slots' => $slotLimit,
+                'reserved_slots' => $reservedSlots,
+                'remaining_slots' => $remainingSlots,
+                'note' => $option->note,
+                'special_price' => $option->special_price,
+            ];
+        })->values();
 
         $hasGuideAvailabilityRules = $availabilityOptions->isNotEmpty();
     }
@@ -75,6 +113,9 @@ Route::get('/tours/{tour}', function (Tour $tour) {
             ->map(fn (string $date): array => [
                 'date' => $date,
                 'status' => 'available',
+                'slots' => null,
+                'reserved_slots' => 0,
+                'remaining_slots' => null,
                 'note' => null,
                 'special_price' => null,
             ]);

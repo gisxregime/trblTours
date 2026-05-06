@@ -3,6 +3,7 @@
 use App\Events\MessageSent;
 use App\Models\Conversation;
 use App\Models\Message;
+use App\Models\Tour;
 use App\Models\User;
 use Illuminate\Support\Facades\Event;
 
@@ -95,4 +96,30 @@ test('non participant cannot send message in another conversation', function () 
         ]);
 
     $response->assertForbidden();
+});
+
+test('messages page starts a tour conversation from query context for tourists', function () {
+    $tourist = User::factory()->create(['role' => 'tourist']);
+    $guide = User::factory()->guide()->create();
+
+    $tour = Tour::factory()->create([
+        'guide_id' => $guide->id,
+        'title' => 'Sagada Clouds and Caves',
+    ]);
+
+    $response = $this
+        ->actingAs($tourist)
+        ->get(route('dashboard.messages', ['tour' => $tour->id]));
+
+    $response
+        ->assertOk()
+        ->assertSee('Messages')
+        ->assertSee($guide->full_name ?: $guide->name)
+        ->assertSee('No messages yet. Start the conversation.');
+
+    $this->assertDatabaseHas('conversations', [
+        'tourist_id' => $tourist->id,
+        'guide_id' => $guide->id,
+        'tour_id' => $tour->id,
+    ]);
 });

@@ -1,14 +1,21 @@
 <div>
     @if($showFilters)
+        @php
+            $filtersActionUrl = $context === 'dashboard'
+                ? route('dashboard.tourist')
+                : route('explore-tours');
+        @endphp
+
         <section class="rounded-2xl border border-[#e4d7be] bg-[#f3ecdf] p-4 sm:p-5">
-            <form wire:submit.prevent="filter" class="grid gap-3 md:grid-cols-[1.65fr_0.55fr_auto] md:items-end">
+            <form method="GET" action="{{ $filtersActionUrl }}" wire:submit.prevent="filter" class="grid gap-3 md:grid-cols-[1.65fr_0.55fr_auto] md:items-end">
                 <label class="grid gap-1.5">
                     <span class="text-[10px] font-bold uppercase tracking-[0.08em] text-[#847766]">
                         <i class="fa-solid fa-location-dot mr-1"></i>Location
                     </span>
                     <input
                         type="text"
-                        wire:model.defer="locationPath"
+                        name="location"
+                        wire:model.live.debounce.300ms="locationPath"
                         placeholder="Palawan"
                         class="h-10 rounded-lg border border-[#ddd2bf] bg-[#faf7f2] px-3 text-sm text-[#5f5243] outline-none transition placeholder:text-[#9e9382] focus:border-[#c9a26a]"
                     >
@@ -16,7 +23,7 @@
 
                 <label class="grid gap-1.5">
                     <span class="text-[10px] font-bold uppercase tracking-[0.08em] text-[#847766]">Sort By</span>
-                    <select wire:model.defer="sortBy" class="h-10 rounded-lg border border-[#ddd2bf] bg-[#faf7f2] px-3 text-sm text-[#5f5243] outline-none transition focus:border-[#c9a26a]">
+                    <select name="sort_by" wire:model.live="sortBy" class="h-10 rounded-lg border border-[#ddd2bf] bg-[#faf7f2] px-3 text-sm text-[#5f5243] outline-none transition focus:border-[#c9a26a]">
                         <option value="latest">Latest</option>
                         <option value="price_low_high">Price (Low)</option>
                         <option value="price_high_low">Price (High)</option>
@@ -27,9 +34,9 @@
                     <button type="submit" class="inline-flex h-10 items-center justify-center rounded-lg bg-[#8ea159] px-5 text-[12px] font-semibold text-white transition hover:brightness-105">
                         Apply
                     </button>
-                    <button type="button" wire:click="resetFilters" class="inline-flex h-10 items-center justify-center rounded-lg border border-[#ddd2bf] bg-[#faf7f2] px-5 text-[12px] font-semibold text-[#736656] transition hover:bg-white">
+                    <a href="{{ $filtersActionUrl }}" wire:click.prevent="resetFilters" class="inline-flex h-10 items-center justify-center rounded-lg border border-[#ddd2bf] bg-[#faf7f2] px-5 text-[12px] font-semibold text-[#736656] transition hover:bg-white">
                         Reset
-                    </button>
+                    </a>
                 </div>
             </form>
         </section>

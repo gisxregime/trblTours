@@ -16,6 +16,7 @@ class GuideAvailability extends Model
         'guide_id',
         'date',
         'status',
+        'slots',
         'note',
         'special_price',
     ];
@@ -27,6 +28,7 @@ class GuideAvailability extends Model
     {
         return [
             'date' => 'date',
+            'slots' => 'integer',
             'special_price' => 'decimal:2',
         ];
     }

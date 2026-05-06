@@ -296,6 +296,32 @@
             line-height: 1.7;
         }
 
+        .overview-facts {
+            margin-top: 14px;
+            display: grid;
+            gap: 8px;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .overview-fact {
+            border-radius: 12px;
+            border: 1px solid rgba(111, 62, 44, 0.14);
+            background: #fdf7ea;
+            color: var(--brown-700);
+            font-size: 13px;
+            font-weight: 600;
+            padding: 8px 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .overview-fact i {
+            color: #8f8475;
+            width: 14px;
+            text-align: center;
+        }
+
         .timeline {
             display: grid;
             gap: 14px;
@@ -630,6 +656,10 @@
                 grid-template-columns: 1fr;
             }
 
+            .overview-facts {
+                grid-template-columns: 1fr;
+            }
+
             .booking-col {
                 position: static;
             }
@@ -699,6 +729,9 @@
         $rating = number_format((float) ($tour->rating ?? 4.9), 1);
         $description = trim((string) ($tour->description ?? $tour->summary ?? 'No description available yet.'));
         $title = $tour->title ?? $tour->name ?? 'Tour Details';
+        $overviewDuration = $tour->duration_label ?? ($tour->duration_hours ? $tour->duration_hours.' hours' : null) ?? 'Flexible';
+        $overviewTravelMode = $tour->travel_mode ?? 'Walking';
+        $overviewFlexibility = $tour->max_guests ? $tour->max_guests.' pax' : 'Flexible';
 
         $availabilityDates = collect($availabilityOptions ?? [])
             ->map(function (mixed $option): ?array {
@@ -730,6 +763,9 @@
                     'display_date' => $dateCarbon->format('M d, Y'),
                     'status' => $status,
                     'status_label' => $label,
+                    'slots' => data_get($option, 'slots'),
+                    'reserved_slots' => data_get($option, 'reserved_slots', 0),
+                    'remaining_slots' => data_get($option, 'remaining_slots'),
                     'special_price' => data_get($option, 'special_price'),
                 ];
             })
@@ -753,6 +789,20 @@
             'home' => 'Back to Home',
             default => 'Back to Explore Tours',
         };
+
+        $messageHref = route('login');
+
+        if (auth()->check()) {
+            $authenticatedUser = auth()->user();
+
+            if ((string) ($authenticatedUser?->role ?? '') === 'tourist') {
+                $messageHref = route('dashboard.messages', ['tour' => $tour->id]);
+            } elseif (in_array((string) ($authenticatedUser?->role ?? ''), ['guide', 'tour_guide'], true)) {
+                $messageHref = route('dashboard.guide.messages');
+            } else {
+                $messageHref = route('dashboard.messages');
+            }
+        }
     ?>
 
     <header class="site-header">
@@ -834,7 +884,7 @@
                         </div>
                     </div>
 
-                    <a href="<?php echo e(auth()->check() ? route('dashboard.messages') : route('login')); ?>" class="message-btn">Send a message</a>
+                    <a href="<?php echo e($messageHref); ?>" class="message-btn">Send a message</a>
                 </div>
             </header>
 
@@ -843,6 +893,21 @@
                     <article class="panel">
                         <h2>Overview</h2>
                         <p class="overview-text"><?php echo e($description); ?></p>
+
+                        <div class="overview-facts">
+                            <div class="overview-fact">
+                                <i class="fa-regular fa-clock"></i>
+                                <span><?php echo e($overviewDuration); ?></span>
+                            </div>
+                            <div class="overview-fact">
+                                <i class="fa-solid fa-person-walking"></i>
+                                <span><?php echo e($overviewTravelMode); ?></span>
+                            </div>
+                            <div class="overview-fact">
+                                <i class="fa-solid fa-user-group"></i>
+                                <span><?php echo e($overviewFlexibility); ?></span>
+                            </div>
+                        </div>
                     </article>
 
                     <article class="panel">
@@ -884,7 +949,7 @@
                             <div class="booking-field">
                                 <label for="bookingDate">Preferred Date</label>
                                 <input id="bookingDate" name="booking_date" type="date" min="<?php echo e(now()->toDateString()); ?>"
-                                    value="<?php echo e($defaultBookingDate); ?>" readonly required>
+                                    value="<?php echo e($defaultBookingDate); ?>" required>
                                 <p class="availability-help">Pick a day from the booking calendar. Enabled dates are bookable.</p>
 
                                 <div class="booking-calendar" data-booking-calendar>
@@ -965,6 +1030,7 @@
             const prevMonthButton = document.querySelector('[data-calendar-prev]');
             const nextMonthButton = document.querySelector('[data-calendar-next]');
             const calendarNote = document.querySelector('[data-calendar-note]');
+            const groupSizeSelect = document.getElementById('groupSize');
 
             const dateFormatter = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' });
             const availabilityMap = new Map(availabilityOptions.map((option) => [option.date, option]));
@@ -985,9 +1051,21 @@
                 return new Date(year, month - 1, day);
             };
 
-            const describeStatus = (status) => {
+            const getRequestedGroupSize = () => {
+                if (!(groupSizeSelect instanceof HTMLSelectElement)) {
+                    return 1;
+                }
+
+                return Number.parseInt(groupSizeSelect.value || '1', 10) || 1;
+            };
+
+            const describeStatus = (status, option = null) => {
                 switch (status) {
                     case 'limited_slots':
+                        if (option && option.remaining_slots !== null && option.remaining_slots !== undefined) {
+                            return `Limited Slots (${Math.max(0, Number(option.remaining_slots))} left)`;
+                        }
+
                         return 'Limited Slots';
                     case 'fiesta':
                         return 'Fiesta';
@@ -1027,12 +1105,18 @@
                 }
 
                 if (option) {
-                    const isUnavailable = option.status === 'fully_booked';
+                    const remainingSlots = option.remaining_slots !== null && option.remaining_slots !== undefined
+                        ? Math.max(0, Number(option.remaining_slots))
+                        : null;
+                    const notEnoughSlots = option.status === 'limited_slots' && remainingSlots !== null && getRequestedGroupSize() > remainingSlots;
+                    const isUnavailable = option.status === 'fully_booked'
+                        || (option.status === 'limited_slots' && remainingSlots !== null && remainingSlots <= 0)
+                        || notEnoughSlots;
 
                     return {
                         enabled: !isUnavailable,
                         variant: isUnavailable ? 'unavailable' : option.status,
-                        label: describeStatus(option.status),
+                        label: notEnoughSlots ? 'Not enough slots' : describeStatus(option.status, option),
                         status: option.status,
                         option,
                     };
@@ -1076,17 +1160,32 @@
 
                 if (selectedOption) {
                     const selectedStatus = selectedOption.status;
-                    const statusLabel = describeStatus(selectedStatus);
+                    const statusLabel = describeStatus(selectedStatus, selectedOption);
                     const statusClass = selectedStatus === 'fully_booked' ? 'unavailable' : 'available';
                     const pricingText = selectedOption.special_price
                         ? ` Special rate: PHP ${Number(selectedOption.special_price).toFixed(2)} per guest.`
                         : '';
+                    const remainingSlots = selectedOption.remaining_slots !== null && selectedOption.remaining_slots !== undefined
+                        ? Math.max(0, Number(selectedOption.remaining_slots))
+                        : null;
+                    const slotText = remainingSlots !== null
+                        ? ` Remaining slots: ${remainingSlots}.`
+                        : '';
+                    const requestedGroupSize = getRequestedGroupSize();
 
                     calendarNote.classList.add(statusClass);
-                    calendarNote.textContent = `${selectedOption.display_date}: ${statusLabel}.${pricingText}`;
+                    calendarNote.textContent = `${selectedOption.display_date}: ${statusLabel}.${slotText}${pricingText}`;
 
                     if (selectedStatus === 'fully_booked') {
                         bookingDateInput.setCustomValidity('Selected date is unavailable. Please choose a different date.');
+
+                        return;
+                    }
+
+                    if (selectedStatus === 'limited_slots' && remainingSlots !== null && requestedGroupSize > remainingSlots) {
+                        bookingDateInput.setCustomValidity('Selected date does not have enough remaining slots for this group size.');
+
+                        return;
                     }
 
                     return;
@@ -1147,7 +1246,9 @@
                     }
 
                     let metaText = dayState.label;
-                    if (dayState.option?.special_price) {
+                    if (dayState.status === 'limited_slots' && dayState.option?.remaining_slots !== null && dayState.option?.remaining_slots !== undefined) {
+                        metaText = `${Math.max(0, Number(dayState.option.remaining_slots))} left`;
+                    } else if (dayState.option?.special_price) {
                         metaText = `P${Number(dayState.option.special_price).toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
                     } else {
                         metaText = compactStatusLabel(dayState.status);
@@ -1189,6 +1290,13 @@
                         activeMonthDate = new Date(parsedDate.getFullYear(), parsedDate.getMonth(), 1);
                     }
 
+                    updateCalendarNote();
+                    renderCalendar();
+                });
+            }
+
+            if (groupSizeSelect instanceof HTMLSelectElement) {
+                groupSizeSelect.addEventListener('change', () => {
                     updateCalendarNote();
                     renderCalendar();
                 });

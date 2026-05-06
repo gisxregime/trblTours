@@ -49,6 +49,12 @@
                     @error('form.special_price') <p class="mt-1 text-xs text-rose-600">{{ $message }}</p> @enderror
                 </div>
 
+                <div>
+                    <label for="availabilitySlots" class="mb-1 block text-sm font-medium text-slate-700">Slots (required for Limited Slots)</label>
+                    <input id="availabilitySlots" wire:model.live="form.slots" type="number" min="1" max="200" class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm text-slate-900 focus:border-emerald-500 focus:outline-none focus:ring-0" placeholder="e.g. 6">
+                    @error('form.slots') <p class="mt-1 text-xs text-rose-600">{{ $message }}</p> @enderror
+                </div>
+
                 <div class="md:col-span-2">
                     <label for="availabilityNote" class="mb-1 block text-sm font-medium text-slate-700">Note</label>
                     <textarea id="availabilityNote" wire:model.live="form.note" rows="3" class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm text-slate-900 focus:border-emerald-500 focus:outline-none focus:ring-0"></textarea>
@@ -79,6 +85,9 @@
                                 <div>
                                     <p class="text-base font-semibold text-slate-900">{{ $row->date?->format('M d, Y') ?? $row->date }}</p>
                                     <p class="mt-1 text-sm text-slate-600 capitalize">{{ str_replace('_', ' ', $row->status) }}</p>
+                                    @if ($row->slots !== null)
+                                        <p class="mt-1 text-sm text-slate-600">Slots: {{ (int) $row->slots }}</p>
+                                    @endif
                                     @if ($row->special_price !== null)
                                         <p class="mt-1 text-sm text-slate-600">Special Price: PHP {{ number_format((float) $row->special_price, 2) }}</p>
                                     @endif

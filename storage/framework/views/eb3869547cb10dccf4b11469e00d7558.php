@@ -724,12 +724,6 @@ if (isset($__slots)) unset($__slots);
                         <div class="border-t border-[#eadfcf] pt-4">
 
                             <div class="mt-3 grid gap-3 sm:grid-cols-2">
-                                <div class="sm:col-span-2">
-                                    <label class="mb-1 block text-xs font-semibold uppercase tracking-[0.08em] text-[#6b5a49]" for="listing_booking_date">Booking Date *</label>
-                                    <input id="listing_booking_date" name="booking_date" type="date" x-model="listingForm.bookingDate" :min="todayDate" required class="w-full rounded-xl border border-[#deceb7] bg-white px-3 py-2.5 text-sm text-[#4f4134] focus:border-[#b9915f] focus:outline-none focus:ring-2 focus:ring-[#e8d6bc]">
-                                    <p class="mt-1 text-[11px] text-[#7a6a58]">Set a fixed tour date for this listing.</p>
-                                </div>
-
                                 <div>
                                     <label class="mb-1 block text-xs font-semibold uppercase tracking-[0.08em] text-[#6b5a49]" for="listing_start_time">Start Time</label>
                                     <input id="listing_start_time" name="start_time" type="time" x-model="listingForm.startTime" class="w-full rounded-xl border border-[#deceb7] bg-white px-3 py-2.5 text-sm text-[#4f4134] focus:border-[#b9915f] focus:outline-none focus:ring-2 focus:ring-[#e8d6bc]">
@@ -951,7 +945,6 @@ if (isset($__slots)) unset($__slots);
                     },
                     included: ['Guide Fee', 'Safety Support'],
                     exclusionsText: '',
-                    bookingDate: '',
                     startTime: '',
                     endTime: '',
                     instantBook: false,
@@ -1006,7 +999,6 @@ if (isset($__slots)) unset($__slots);
                         },
                         included: ['Guide Fee', 'Safety Support'],
                         exclusionsText: '',
-                        bookingDate: '',
                         startTime: '',
                         endTime: '',
                         instantBook: false,
@@ -1116,7 +1108,6 @@ if (isset($__slots)) unset($__slots);
                         { label: 'Location is required', valid: this.listingForm.location.trim() !== '' && this.listingForm.region.trim() !== '' },
                         { label: 'Short description is required', valid: this.listingForm.shortDescription.trim() !== '' },
                         { label: 'Base price is required', valid: Number(this.listingForm.basePrice) > 0 },
-                        { label: 'Booking date is required', valid: this.listingForm.bookingDate.trim() !== '' },
                         { label: 'At least 3 gallery photos', valid: this.galleryImageFiles.length >= 3 },
                     ];
                 },
@@ -1186,18 +1177,11 @@ if (isset($__slots)) unset($__slots);
                 },
 
                 bookingSummaryLabel() {
-                    const bookingDateLabel = this.listingForm.bookingDate !== ''
-                        ? new Date(`${this.listingForm.bookingDate}T00:00:00`).toLocaleDateString(undefined, {
-                            month: 'short',
-                            day: 'numeric',
-                            year: 'numeric',
-                        })
-                        : 'Set booking date';
                     const timeLabel = this.listingForm.startTime && this.listingForm.endTime
                         ? `${this.listingForm.startTime} - ${this.listingForm.endTime}`
                         : 'Time on request';
                     const bookingMode = this.listingForm.instantBook ? 'Instant Book' : (this.listingForm.requiresApproval ? 'Requires Approval' : 'Manual confirmation');
-                    return `${this.listingForm.priceType.replace('_', ' ')} • ${bookingDateLabel} • ${timeLabel} • ${bookingMode}`;
+                    return `${this.listingForm.priceType.replace('_', ' ')} • Availability picker • ${timeLabel} • ${bookingMode}`;
                 },
 
                 itineraryPreviewItems() {

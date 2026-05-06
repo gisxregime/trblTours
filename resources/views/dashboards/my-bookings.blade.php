@@ -35,198 +35,216 @@
 
             <section
                 class="rounded-2xl border border-[#dfd0b4] bg-[#fffaf1] p-4 shadow-[0_20px_45px_-30px_rgba(63,45,34,0.55)] sm:p-6">
-                @php
-                    $focusedBookingRequest = $selectedBookingRequest ?? null;
-                    $focusedBooking = $focusedBookingRequest ? $focusedBookingRequest->booking : null;
-                    $focusedReview = $focusedBooking ? $focusedBooking->review : null;
-                    $focusedStatus = strtolower((string) ($focusedBooking?->status ?? ($focusedBookingRequest ? $focusedBookingRequest->status : 'pending')));
-                    $focusedIsCompleted = $focusedStatus === 'completed' && $focusedBooking !== null;
-                    $focusedTourDate = $focusedBooking?->booking_date ?? ($focusedBookingRequest ? $focusedBookingRequest->requested_date : null);
-                    $focusedTotalAmount = (float) ($focusedBooking?->total_amount ?? ($focusedBookingRequest ? $focusedBookingRequest->total_price : 0));
-                    $focusedGuideName = data_get($focusedBookingRequest, 'guide.full_name') ?: data_get($focusedBookingRequest, 'guide.name') ?: 'Guide';
-                    $focusedTourName = data_get($focusedBookingRequest, 'tour.title') ?? (data_get($focusedBookingRequest, 'tour.name') ?? 'Tour Booking');
-                @endphp
-
                 @if ($bookingRequests->isEmpty())
                     <div class="rounded-xl border border-dashed border-[#dac9af] bg-[#fff7eb] p-5 text-sm text-[#7b6756]">
                         No bookings yet. Open a tour and click Book Now to create your first booking request.
                     </div>
                 @else
-                    <div class="grid grid-cols-1 gap-6 xl:grid-cols-[1.35fr_1fr]">
+                    @php
+                        $pendingBookings = collect();
+                        $scheduledBookings = collect();
+                        $completedBookings = collect();
+
+                        foreach ($bookingRequests as $bookingRequest) {
+                            $status = strtolower((string) ($bookingRequest->booking?->status ?? ($bookingRequest->status ?? 'pending')));
+
+                            if ($status === 'pending') {
+                                $pendingBookings->push($bookingRequest);
+
+                                continue;
+                            }
+
+                            if (in_array($status, ['accepted', 'confirmed', 'in_progress', 'booked'], true)) {
+                                $scheduledBookings->push($bookingRequest);
+
+                                continue;
+                            }
+
+                            if ($status === 'completed' && $bookingRequest->booking !== null) {
+                                $completedBookings->push($bookingRequest);
+                            }
+                        }
+                    @endphp
+
+                    <div class="grid grid-cols-1 gap-5 xl:grid-cols-3">
                         <article class="space-y-4 rounded-2xl border border-[#decfb2] bg-[#fffdf8] p-4 shadow-[0_16px_35px_-30px_rgba(63,45,34,0.7)] sm:p-5">
-                            <div class="flex items-center justify-between gap-3">
-                                <h2 class="text-lg font-semibold text-[#3f2d22]">Booked Tour Packages</h2>
-                                <span class="rounded-full bg-[#f5ead7] px-3 py-1 text-xs font-semibold text-[#6f5d52]">{{ $bookingRequests->total() }} total</span>
+                            <div class="flex items-center justify-between gap-2">
+                                <h2 class="text-lg font-semibold text-[#3f2d22]">Pending</h2>
+                                <span class="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-800">{{ $pendingBookings->count() }}</span>
                             </div>
 
-                            <div class="space-y-4">
-                                @foreach ($bookingRequests as $bookingRequest)
-                                    @php
-                                        $tour = $bookingRequest->tour;
-                                        $booking = $bookingRequest->booking;
-                                        $status = strtolower((string) ($booking?->status ?? ($bookingRequest->status ?? 'pending')));
-                                        $statusLabel = match ($status) {
-                                            'accepted', 'confirmed', 'in_progress' => 'Booked',
-                                            'completed' => 'Completed',
-                                            'declined' => 'Declined',
-                                            'cancelled' => 'Cancelled',
-                                            default => 'Pending',
-                                        };
-                                        $statusClasses = match ($status) {
-                                            'completed' => 'bg-emerald-100 text-emerald-800',
-                                            'confirmed', 'accepted', 'in_progress' => 'bg-[#eef4e6] text-[#4f6d39]',
-                                            'declined', 'cancelled' => 'bg-rose-100 text-rose-800',
-                                            default => 'bg-amber-100 text-amber-800',
-                                        };
-                                        $imageUrl =
-                                            $tour?->image_url ??
-                                            (($tour?->featured_image ? asset($tour->featured_image) : null) ??
-                                                (($tour?->image_path ? asset($tour->image_path) : null) ??
-                                                    asset('hero/palawan.jpg')));
-                                        $guideName = $bookingRequest->guide?->full_name ?: $bookingRequest->guide?->name ?: 'Guide';
-                                        $tourDate = $booking?->booking_date ?? $bookingRequest->requested_date;
-                                        $totalAmount = (float) ($booking?->total_amount ?? ($bookingRequest->total_price ?? 0));
-                                        $isCompleted = $status === 'completed' && $booking !== null;
-                                        $canCancel = $status === 'pending';
-                                        $isFocused = (int) ($focusedBookingRequest ? $focusedBookingRequest->id : 0) === (int) $bookingRequest->id;
-                                        $focusUrl = route('dashboard.my-bookings', ['focus' => $bookingRequest->id]).'#rating-review-panel';
-                                    @endphp
+                            @if ($pendingBookings->isEmpty())
+                                <div class="rounded-xl border border-dashed border-[#dac9af] bg-[#fff7eb] p-4 text-sm text-[#7b6756]">No pending bookings.</div>
+                            @else
+                                <div class="space-y-4">
+                                    @foreach ($pendingBookings as $bookingRequest)
+                                        @php
+                                            $tour = $bookingRequest->tour;
+                                            $booking = $bookingRequest->booking;
+                                            $imageUrl =
+                                                $tour?->image_url ??
+                                                (($tour?->featured_image ? asset($tour->featured_image) : null) ??
+                                                    (($tour?->image_path ? asset($tour->image_path) : null) ??
+                                                        asset('hero/palawan.jpg')));
+                                            $guideName = $bookingRequest->guide?->full_name ?: $bookingRequest->guide?->name ?: 'Guide';
+                                            $tourDate = $booking?->booking_date ?? $bookingRequest->requested_date;
+                                            $totalAmount = (float) ($booking?->total_amount ?? ($bookingRequest->total_price ?? 0));
+                                        @endphp
 
-                                    <div class="overflow-hidden rounded-2xl border {{ $isFocused ? 'border-[#c8b08d] ring-2 ring-[#efe0c8]' : 'border-[#ddcdb2]' }} bg-[#fffdf8] shadow-[0_16px_35px_-30px_rgba(63,45,34,0.7)] {{ $isCompleted ? 'cursor-pointer' : '' }}"
-                                        @if ($isCompleted) onclick="window.location='{{ $focusUrl }}'" @endif>
-                                        <img src="{{ $imageUrl }}"
-                                            alt="{{ $tour?->title ?? ($tour?->name ?? 'Booked Tour') }}"
-                                            class="h-40 w-full object-cover">
+                                        <div class="overflow-hidden rounded-2xl border border-[#ddcdb2] bg-[#fffdf8] shadow-[0_16px_35px_-30px_rgba(63,45,34,0.7)]">
+                                            <img src="{{ $imageUrl }}" alt="{{ $tour?->title ?? ($tour?->name ?? 'Booked Tour') }}" class="h-32 w-full object-cover">
 
-                                        <div class="space-y-3 p-4">
-                                            <div class="flex items-start justify-between gap-3">
-                                                <div>
-                                                    <h3 class="text-base font-semibold text-[#3f2d22]">{{ $tour?->title ?? ($tour?->name ?? 'Tour Booking') }}</h3>
-                                                    <p class="text-sm text-[#6f5d52]">Guide: {{ $guideName }}</p>
+                                            <div class="space-y-3 p-4">
+                                                <div class="flex items-start justify-between gap-2">
+                                                    <div>
+                                                        <h3 class="text-base font-semibold text-[#3f2d22]">{{ $tour?->title ?? ($tour?->name ?? 'Tour Booking') }}</h3>
+                                                        <p class="text-sm text-[#6f5d52]">Guide: {{ $guideName }}</p>
+                                                    </div>
+                                                    <span class="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-800">Pending</span>
                                                 </div>
-                                                <span class="rounded-full px-2.5 py-1 text-xs font-semibold {{ $statusClasses }}">{{ $statusLabel }}</span>
-                                            </div>
 
-                                            <dl class="grid grid-cols-1 gap-2 text-sm text-[#6f5d52] sm:grid-cols-2">
-                                                <div>
-                                                    <dt class="font-semibold text-[#4f3d31]">Tour Date</dt>
-                                                    <dd>{{ $tourDate?->format('M d, Y') ?? 'TBD' }}</dd>
-                                                </div>
-                                                <div>
-                                                    <dt class="font-semibold text-[#4f3d31]">Group Size</dt>
-                                                    <dd>{{ $bookingRequest->group_size }} {{ $bookingRequest->group_size === 1 ? 'Guest' : 'Guests' }}</dd>
-                                                </div>
-                                                <div>
-                                                    <dt class="font-semibold text-[#4f3d31]">Total</dt>
-                                                    <dd>₱ {{ number_format($totalAmount, 2) }}</dd>
-                                                </div>
-                                            </dl>
+                                                <p class="text-sm text-[#6f5d52]">{{ $tourDate?->format('M d, Y') ?? 'TBD' }} • ₱ {{ number_format($totalAmount, 2) }}</p>
 
-                                            <div class="flex flex-wrap items-center gap-2">
-                                                @if ($canCancel)
-                                                    <form method="POST" action="{{ route('dashboard.my-bookings.cancel', $bookingRequest) }}">
-                                                        @csrf
-                                                        @method('PATCH')
-                                                        <button type="submit"
-                                                            class="inline-flex items-center rounded-full border border-rose-300 bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-700 transition hover:bg-rose-100">
-                                                            Cancel
-                                                        </button>
-                                                    </form>
-                                                @endif
-
-                                                @if ($isCompleted)
-                                                    <a href="{{ $focusUrl }}"
-                                                        class="inline-flex items-center rounded-full border border-[#4f7740] bg-[#5f8a46] px-3 py-1.5 text-xs font-semibold text-[#f7fff4] transition hover:bg-[#4f7740]">
-                                                        Open Rating & Review
-                                                    </a>
-                                                @endif
+                                                <form method="POST" action="{{ route('dashboard.my-bookings.cancel', $bookingRequest) }}">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <button type="submit" class="inline-flex items-center rounded-full border border-rose-300 bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-700 transition hover:bg-rose-100">
+                                                        Cancel
+                                                    </button>
+                                                </form>
                                             </div>
                                         </div>
-                                    </div>
-                                @endforeach
-                            </div>
+                                    @endforeach
+                                </div>
+                            @endif
                         </article>
 
-                        <article id="rating-review-panel"
-                            class="h-fit rounded-2xl border border-[#decfb2] bg-[#fffdf8] p-4 shadow-[0_16px_35px_-30px_rgba(63,45,34,0.7)] sm:p-5 xl:sticky xl:top-24">
-                            <h2 class="text-lg font-semibold text-[#3f2d22]">Rating & Review</h2>
+                        <article class="space-y-4 rounded-2xl border border-[#decfb2] bg-[#fffdf8] p-4 shadow-[0_16px_35px_-30px_rgba(63,45,34,0.7)] sm:p-5">
+                            <div class="flex items-center justify-between gap-2">
+                                <h2 class="text-lg font-semibold text-[#3f2d22]">Booked</h2>
+                                <span class="rounded-full bg-[#eef4e6] px-2.5 py-1 text-xs font-semibold text-[#4f6d39]">{{ $scheduledBookings->count() }}</span>
+                            </div>
 
-                            @if (! $focusedBookingRequest)
-                                <div class="mt-3 rounded-xl border border-dashed border-[#dac9af] bg-[#fff7eb] p-4 text-sm text-[#7b6756]">
-                                    Select a booking from the left column to review details.
-                                </div>
+                            @if ($scheduledBookings->isEmpty())
+                                <div class="rounded-xl border border-dashed border-[#dac9af] bg-[#fff7eb] p-4 text-sm text-[#7b6756]">No scheduled bookings yet.</div>
                             @else
-                                <div class="mt-3 rounded-xl border border-[#e5d8c2] bg-[#fff9f1] p-4">
-                                    <p class="text-sm font-semibold text-[#4f3d31]">{{ $focusedTourName }}</p>
-                                    <p class="mt-1 text-sm text-[#6f5d52]">Guide: {{ $focusedGuideName }}</p>
-                                    <p class="mt-1 text-sm text-[#6f5d52]">Tour Date: {{ $focusedTourDate?->format('M d, Y') ?? 'TBD' }}</p>
-                                    <p class="mt-1 text-sm text-[#6f5d52]">Total: ₱ {{ number_format($focusedTotalAmount, 2) }}</p>
-                                </div>
+                                <div class="space-y-4">
+                                    @foreach ($scheduledBookings as $bookingRequest)
+                                        @php
+                                            $tour = $bookingRequest->tour;
+                                            $booking = $bookingRequest->booking;
+                                            $status = strtolower((string) ($booking?->status ?? ($bookingRequest->status ?? 'accepted')));
+                                            $statusLabel = in_array($status, ['accepted', 'confirmed', 'booked'], true) ? 'Booked' : 'In Progress';
+                                            $imageUrl =
+                                                $tour?->image_url ??
+                                                (($tour?->featured_image ? asset($tour->featured_image) : null) ??
+                                                    (($tour?->image_path ? asset($tour->image_path) : null) ??
+                                                        asset('hero/palawan.jpg')));
+                                            $guideName = $bookingRequest->guide?->full_name ?: $bookingRequest->guide?->name ?: 'Guide';
+                                            $tourDate = $booking?->booking_date ?? $bookingRequest->requested_date;
+                                            $totalAmount = (float) ($booking?->total_amount ?? ($bookingRequest->total_price ?? 0));
+                                        @endphp
 
-                                @if (! $focusedIsCompleted)
-                                    <div class="mt-3 rounded-xl border border-dashed border-[#dac9af] bg-[#fff7eb] p-4 text-sm text-[#7b6756]">
-                                        Ratings are unlocked after completion. Pending bookings can still be cancelled from the left column.
-                                    </div>
-                                @else
-                                    <div class="mt-3 rounded-xl border border-[#d9ceba] bg-[#fff8ef] p-4">
-                                        @if ($focusedReview)
-                                            <div class="flex items-center justify-between gap-2">
-                                                <p class="text-sm font-semibold text-[#4f3d31]">Your current rating</p>
-                                                <span class="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-800">Rated</span>
-                                            </div>
-                                            <div class="mt-2 inline-flex items-center gap-1 text-[#d4a563]">
-                                                @for ($star = 1; $star <= 5; $star++)
-                                                    <i class="{{ $star <= (int) $focusedReview->rating ? 'fa-solid' : 'fa-regular' }} fa-star"></i>
-                                                @endfor
-                                                <span class="ml-1 text-xs font-semibold text-[#7a6556]">{{ (int) $focusedReview->rating }}/5</span>
-                                            </div>
+                                        <div class="overflow-hidden rounded-2xl border border-[#ddcdb2] bg-[#fffdf8] shadow-[0_16px_35px_-30px_rgba(63,45,34,0.7)]">
+                                            <img src="{{ $imageUrl }}" alt="{{ $tour?->title ?? ($tour?->name ?? 'Scheduled Tour') }}" class="h-32 w-full object-cover">
 
-                                            @if ($focusedReview->review)
-                                                <p class="mt-2 text-sm text-[#6f5d52]">{{ $focusedReview->review }}</p>
-                                            @endif
-                                        @else
-                                            <div class="flex items-center justify-between gap-2">
-                                                <p class="text-sm font-semibold text-[#4f3d31]">Share your experience</p>
-                                                <span class="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-800">Pending Review</span>
-                                            </div>
-                                        @endif
-
-                                        <form method="POST" action="{{ route('dashboard.my-bookings.rating', $focusedBooking) }}" class="mt-3 space-y-3">
-                                            @csrf
-
-                                            <div>
-                                                <p class="mb-2 text-xs font-semibold uppercase tracking-[0.07em] text-[#6f5d52]">Star Rating</p>
-                                                <div class="flex flex-wrap gap-2">
-                                                    @for ($rating = 5; $rating >= 1; $rating--)
-                                                        <label for="rating_{{ $focusedBooking->id }}_{{ $rating }}"
-                                                            class="inline-flex cursor-pointer items-center gap-1 rounded-full border border-[#dcc9ad] bg-[#fffdf8] px-3 py-1.5 text-sm font-semibold text-[#6f5d52] transition hover:border-[#d4a563] hover:text-[#4d3d30]">
-                                                            <input id="rating_{{ $focusedBooking->id }}_{{ $rating }}" type="radio" name="rating" value="{{ $rating }}"
-                                                                class="h-4 w-4 border-[#c9b28e] text-[#a88452] focus:ring-[#d8c3a2]"
-                                                                @checked((int) old('rating', $focusedReview?->rating ?? 0) === $rating)
-                                                                required>
-                                                            <span class="text-[#d4a563]">★</span>
-                                                            <span>{{ $rating }}</span>
-                                                        </label>
-                                                    @endfor
+                                            <div class="space-y-2 p-4">
+                                                <div class="flex items-start justify-between gap-2">
+                                                    <div>
+                                                        <h3 class="text-base font-semibold text-[#3f2d22]">{{ $tour?->title ?? ($tour?->name ?? 'Tour Booking') }}</h3>
+                                                        <p class="text-sm text-[#6f5d52]">Guide: {{ $guideName }}</p>
+                                                    </div>
+                                                    <span class="rounded-full bg-[#eef4e6] px-2.5 py-1 text-xs font-semibold text-[#4f6d39]">{{ $statusLabel }}</span>
                                                 </div>
-                                            </div>
 
-                                            <div>
-                                                <label for="review_{{ $focusedBooking->id }}"
-                                                    class="mb-1 block text-xs font-semibold uppercase tracking-[0.07em] text-[#6f5d52]">Comment
-                                                    (Optional)</label>
-                                                <textarea id="review_{{ $focusedBooking->id }}" name="review" rows="3" maxlength="1000"
-                                                    class="w-full rounded-lg border border-[#dcc9ad] bg-[#fffdf8] px-3 py-2 text-sm text-[#4d3d30] placeholder:text-[#9b8a79] focus:border-[#a98b64] focus:outline-none focus:ring-2 focus:ring-[#d8c3a2]"
-                                                    placeholder="How was your experience?">{{ old('review', $focusedReview?->review) }}</textarea>
+                                                <p class="text-sm text-[#6f5d52]">{{ $tourDate?->format('M d, Y') ?? 'TBD' }} • ₱ {{ number_format($totalAmount, 2) }}</p>
                                             </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
+                        </article>
 
-                                            <button type="submit"
-                                                class="inline-flex items-center rounded-full border border-[#4f7740] bg-[#5f8a46] px-4 py-1.5 text-xs font-semibold text-[#f7fff4] transition hover:bg-[#4f7740]">
-                                                {{ $focusedReview ? 'Update Rating' : 'Submit Rating' }}
-                                            </button>
-                                        </form>
-                                    </div>
-                                @endif
+                        <article class="space-y-4 rounded-2xl border border-[#decfb2] bg-[#fffdf8] p-4 shadow-[0_16px_35px_-30px_rgba(63,45,34,0.7)] sm:p-5">
+                            <div class="flex items-center justify-between gap-2">
+                                <h2 class="text-lg font-semibold text-[#3f2d22]">Completed</h2>
+                                <span class="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-800">{{ $completedBookings->count() }}</span>
+                            </div>
+
+                            @if ($completedBookings->isEmpty())
+                                <div class="rounded-xl border border-dashed border-[#dac9af] bg-[#fff7eb] p-4 text-sm text-[#7b6756]">No completed tours yet.</div>
+                            @else
+                                <div class="space-y-4">
+                                    @foreach ($completedBookings as $bookingRequest)
+                                        @php
+                                            $tour = $bookingRequest->tour;
+                                            $booking = $bookingRequest->booking;
+                                            $review = $booking?->review;
+                                            $imageUrl =
+                                                $tour?->image_url ??
+                                                (($tour?->featured_image ? asset($tour->featured_image) : null) ??
+                                                    (($tour?->image_path ? asset($tour->image_path) : null) ??
+                                                        asset('hero/palawan.jpg')));
+                                            $guideName = $bookingRequest->guide?->full_name ?: $bookingRequest->guide?->name ?: 'Guide';
+                                            $tourDate = $booking?->booking_date ?? $bookingRequest->requested_date;
+                                            $totalAmount = (float) ($booking?->total_amount ?? ($bookingRequest->total_price ?? 0));
+                                        @endphp
+
+                                        <div class="overflow-hidden rounded-2xl border border-[#ddcdb2] bg-[#fffdf8] shadow-[0_16px_35px_-30px_rgba(63,45,34,0.7)]">
+                                            <img src="{{ $imageUrl }}" alt="{{ $tour?->title ?? ($tour?->name ?? 'Completed Tour') }}" class="h-32 w-full object-cover">
+
+                                            <div class="space-y-3 p-4">
+                                                <div class="flex items-start justify-between gap-2">
+                                                    <div>
+                                                        <h3 class="text-base font-semibold text-[#3f2d22]">{{ $tour?->title ?? ($tour?->name ?? 'Tour Booking') }}</h3>
+                                                        <p class="text-sm text-[#6f5d52]">Guide: {{ $guideName }}</p>
+                                                    </div>
+                                                    <span class="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-800">Completed</span>
+                                                </div>
+
+                                                <p class="text-sm text-[#6f5d52]">{{ $tourDate?->format('M d, Y') ?? 'TBD' }} • ₱ {{ number_format($totalAmount, 2) }}</p>
+
+                                                @if ($review)
+                                                    <div>
+                                                        <p class="text-xs font-semibold uppercase tracking-[0.07em] text-[#6f5d52]">Your Rating</p>
+                                                        <div class="mt-1 inline-flex items-center gap-1 text-[#d4a563]">
+                                                            @for ($star = 1; $star <= 5; $star++)
+                                                                <i class="{{ $star <= (int) $review->rating ? 'fa-solid' : 'fa-regular' }} fa-star"></i>
+                                                            @endfor
+                                                            <span class="ml-1 text-xs font-semibold text-[#7a6556]">{{ (int) $review->rating }}/5</span>
+                                                        </div>
+                                                        @if ($review->review)
+                                                            <p class="mt-2 text-sm text-[#6f5d52]">{{ $review->review }}</p>
+                                                        @endif
+                                                    </div>
+                                                @endif
+
+                                                <form method="POST" action="{{ route('dashboard.my-bookings.rating', $booking) }}" class="space-y-2">
+                                                    @csrf
+                                                    <div>
+                                                        <label for="rating_{{ $booking->id }}" class="mb-1 block text-xs font-semibold uppercase tracking-[0.07em] text-[#6f5d52]">Star Rating</label>
+                                                        <select id="rating_{{ $booking->id }}" name="rating" required class="w-full rounded-lg border border-[#dcc9ad] bg-[#fffdf8] px-3 py-2 text-sm text-[#4d3d30] focus:border-[#a98b64] focus:outline-none focus:ring-2 focus:ring-[#d8c3a2]">
+                                                            @for ($rating = 5; $rating >= 1; $rating--)
+                                                                <option value="{{ $rating }}" @selected((int) old('rating', $review?->rating ?? 0) === $rating)>{{ $rating }} {{ $rating === 1 ? 'Star' : 'Stars' }}</option>
+                                                            @endfor
+                                                        </select>
+                                                    </div>
+
+                                                    <div>
+                                                        <label for="review_{{ $booking->id }}" class="mb-1 block text-xs font-semibold uppercase tracking-[0.07em] text-[#6f5d52]">Comment (Optional)</label>
+                                                        <textarea id="review_{{ $booking->id }}" name="review" rows="3" maxlength="1000"
+                                                            class="w-full rounded-lg border border-[#dcc9ad] bg-[#fffdf8] px-3 py-2 text-sm text-[#4d3d30] placeholder:text-[#9b8a79] focus:border-[#a98b64] focus:outline-none focus:ring-2 focus:ring-[#d8c3a2]"
+                                                            placeholder="How was your experience?">{{ old('review', $review?->review) }}</textarea>
+                                                    </div>
+
+                                                    <button type="submit" class="inline-flex items-center rounded-full border border-[#4f7740] bg-[#5f8a46] px-4 py-1.5 text-xs font-semibold text-[#f7fff4] transition hover:bg-[#4f7740]">
+                                                        {{ $review ? 'Update Rating' : 'Submit Rating' }}
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
                             @endif
                         </article>
                     </div>

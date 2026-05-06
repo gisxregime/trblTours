@@ -18,6 +18,7 @@ class GuideAvailabilityManager extends Component
     public array $form = [
         'date' => '',
         'status' => 'available',
+        'slots' => '',
         'note' => '',
         'special_price' => '',
     ];
@@ -34,6 +35,7 @@ class GuideAvailabilityManager extends Component
         $validated = $this->validate([
             'form.date' => ['required', 'date'],
             'form.status' => ['required', 'string', 'in:available,fully_booked,fiesta,limited_slots'],
+            'form.slots' => ['nullable', 'integer', 'min:1', 'max:200', 'required_if:form.status,limited_slots'],
             'form.note' => ['nullable', 'string', 'max:1000'],
             'form.special_price' => ['nullable', 'numeric', 'min:0'],
         ]);
@@ -42,6 +44,7 @@ class GuideAvailabilityManager extends Component
             'guide_id' => $guideId,
             'date' => $validated['form']['date'],
             'status' => $validated['form']['status'],
+            'slots' => $validated['form']['status'] === 'limited_slots' ? (int) $validated['form']['slots'] : null,
             'note' => trim((string) $validated['form']['note']) !== '' ? $validated['form']['note'] : null,
             'special_price' => $validated['form']['special_price'] !== '' ? (float) $validated['form']['special_price'] : null,
         ];
@@ -79,6 +82,7 @@ class GuideAvailabilityManager extends Component
         $this->form = [
             'date' => $availabilityDate instanceof DateTimeInterface ? $availabilityDate->format('Y-m-d') : (string) ($availabilityDate ?? ''),
             'status' => $availability->status,
+            'slots' => $availability->slots !== null ? (string) $availability->slots : '',
             'note' => (string) ($availability->note ?? ''),
             'special_price' => $availability->special_price !== null ? (string) $availability->special_price : '',
         ];
@@ -130,6 +134,7 @@ class GuideAvailabilityManager extends Component
         $this->form = [
             'date' => '',
             'status' => 'available',
+            'slots' => '',
             'note' => '',
             'special_price' => '',
         ];

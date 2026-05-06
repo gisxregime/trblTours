@@ -6,6 +6,7 @@ use App\Events\ConversationRead;
 use App\Events\MessageSent;
 use App\Models\Conversation;
 use App\Models\Message;
+use App\Models\Tour;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
@@ -24,10 +25,13 @@ class DashboardMessagesController extends Controller
         abort_unless($user !== null, 401);
 
         $userId = (int) $user->id;
+        $selectedConversationId = $request->integer('conversation');
+
+        if (! $selectedConversationId) {
+            $selectedConversationId = $this->resolveTourConversationId($request, $user);
+        }
 
         $conversations = $this->conversationQuery($userId)->get();
-
-        $selectedConversationId = $request->integer('conversation');
 
         if (! $selectedConversationId && $conversations->isNotEmpty()) {
             $selectedConversationId = (int) $conversations->first()->id;
@@ -66,6 +70,43 @@ class DashboardMessagesController extends Controller
                 : null,
             'selectedMessages' => $selectedMessages,
         ]);
+    }
+
+    private function resolveTourConversationId(Request $request, User $user): ?int
+    {
+        if ((string) $user->role !== 'tourist') {
+            return null;
+        }
+
+        $tourId = $request->integer('tour');
+
+        if ($tourId <= 0) {
+            return null;
+        }
+
+        $tour = Tour::query()
+            ->select(['id', 'guide_id'])
+            ->whereKey($tourId)
+            ->first();
+
+        $guideId = (int) ($tour?->guide_id ?? 0);
+
+        if (! $tour || $guideId <= 0 || $guideId === (int) $user->id) {
+            return null;
+        }
+
+        $conversation = Conversation::query()->firstOrCreate(
+            [
+                'tourist_id' => (int) $user->id,
+                'guide_id' => $guideId,
+                'tour_id' => (int) $tour->id,
+            ],
+            [
+                'last_message_at' => now(),
+            ]
+        );
+
+        return (int) $conversation->id;
     }
 
     public function show(Request $request, Conversation $conversation): JsonResponse

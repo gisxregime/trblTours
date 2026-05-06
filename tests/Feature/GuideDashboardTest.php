@@ -225,7 +225,6 @@ it('requires cover image and at least three gallery photos when publishing listi
             'max_guests' => 6,
             'base_price' => 3900,
             'price_type' => 'per_person',
-            'booking_date' => now()->addDays(7)->toDateString(),
             'gallery_images' => [
                 UploadedFile::fake()->create('gallery-1.jpg', 120, 'image/jpeg'),
                 UploadedFile::fake()->create('gallery-2.jpg', 120, 'image/jpeg'),
@@ -267,7 +266,6 @@ it('publishes listing builder fields to the tour and keeps it out of featured to
             'languages_spoken' => ['English', 'Filipino'],
             'base_price' => 3800,
             'price_type' => 'per_person',
-            'booking_date' => now()->addDays(10)->toDateString(),
             'overview_description' => 'Full-day guided island hopping with hidden lagoons and flexible swim stops.',
             'itinerary_pickup' => 'El Nido Port',
             'itinerary_stop_1' => 'Big Lagoon',
@@ -305,5 +303,9 @@ it('publishes listing builder fields to the tour and keeps it out of featured to
     if (Schema::hasColumn('tours', 'full_itinerary')) {
         expect((string) $tour?->full_itinerary)->toContain('Pickup Point: El Nido Port');
         expect((string) $tour?->full_itinerary)->toContain('Stop 1: Big Lagoon');
+    }
+
+    if (Schema::hasColumn('tours', 'available_on')) {
+        expect($tour?->available_on)->toBeNull();
     }
 });
