@@ -12,9 +12,23 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 class GuideDashboardController extends Controller
 {
+    /**
+     * @var list<string>
+     */
+    private const DEFAULT_INCLUSION_OPTIONS = [
+        'Guide Fee',
+        'Boat Transfer',
+        'Entrance Fees',
+        'Snacks',
+        'Water',
+        'Photos',
+        'Safety Support',
+    ];
+
     public function index(Request $request): View
     {
         $user = $request->user();
@@ -37,7 +51,7 @@ class GuideDashboardController extends Controller
             ->get();
 
         $guideListings = $this->guideToursQuery((int) $user->id)
-            ->latest()
+            ->orderByDesc('id')
             ->limit(30)
             ->get();
 
@@ -96,9 +110,9 @@ class GuideDashboardController extends Controller
             'region' => ['required', 'string', 'max:160'],
             'location' => ['required', 'string', 'max:255'],
             'short_description' => ['required', 'string', 'max:150'],
-            'cover_image' => ['required', 'image', 'max:4096'],
-            'gallery_images' => ['required', 'array', 'min:3', 'max:5'],
-            'gallery_images.*' => ['required', 'image', 'max:4096'],
+            'cover_image' => ['required', 'file', 'mimes:jpg,jpeg,png,webp,avif,heic,heif', 'max:8192'],
+            'gallery_images' => ['required', 'array', 'min:1', 'max:5'],
+            'gallery_images.*' => ['required', 'file', 'mimes:jpg,jpeg,png,webp,avif,heic,heif', 'max:8192'],
             'guide_name' => ['nullable', 'string', 'max:120'],
             'guide_bio' => ['nullable', 'string', 'max:255'],
             'duration_label' => ['required', 'string', 'max:120'],
@@ -178,6 +192,14 @@ class GuideDashboardController extends Controller
             ->values()
             ->all();
 
+        $defaultInclusions = collect(self::DEFAULT_INCLUSION_OPTIONS)
+            ->map(fn (string $value): string => Str::lower(trim($value)));
+
+        $customInclusions = collect($inclusions)
+            ->filter(fn (string $value): bool => ! $defaultInclusions->contains(Str::lower(trim($value))))
+            ->values()
+            ->all();
+
         $priceType = (string) $validated['price_type'];
         $basePrice = (float) $validated['base_price'];
         $normalizedDifficulty = $this->normalizeDifficulty((string) ($validated['difficulty'] ?? 'Easy'));
@@ -231,6 +253,7 @@ class GuideDashboardController extends Controller
             'full_itinerary' => $fullItinerary,
             'inclusions' => $inclusions,
             'exclusions' => $validated['exclusions_text'] ?? null,
+            'custom_inclusions' => $customInclusions,
             'available_on' => null,
             'pricing_tiers' => $metadata,
             'blackout_dates' => [],
@@ -278,9 +301,7 @@ class GuideDashboardController extends Controller
             ->where(function ($query) use ($guideId, $hasGuideId, $hasCreatedBy): void {
                 if ($hasGuideId && $hasCreatedBy) {
                     $query->where('guide_id', $guideId)
-                        ->orWhere(function ($fallback) use ($guideId): void {
-                            $fallback->whereNull('guide_id')->where('created_by', $guideId);
-                        });
+                        ->orWhere('created_by', $guideId);
 
                     return;
                 }

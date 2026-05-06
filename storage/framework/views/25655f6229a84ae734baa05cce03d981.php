@@ -1,4 +1,4 @@
-<div>
+<div <?php if($context === 'dashboard'): ?> wire:poll.5s <?php endif; ?>>
     <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($showFilters): ?>
         <?php
             $filtersActionUrl = $context === 'dashboard'

@@ -686,9 +686,25 @@
         ]);
 
         $normalizeImage = function (string $path): string {
-            return str_starts_with($path, 'http://') || str_starts_with($path, 'https://')
-                ? $path
-                : asset(ltrim($path, '/'));
+            $normalizedPath = ltrim(trim($path), '/');
+
+            if ($normalizedPath === '') {
+                return asset('hero/palawan.jpg');
+            }
+
+            if (str_starts_with($normalizedPath, 'http://') || str_starts_with($normalizedPath, 'https://') || str_starts_with($normalizedPath, 'data:image/')) {
+                return $normalizedPath;
+            }
+
+            if (str_starts_with($normalizedPath, 'storage/')) {
+                return asset($normalizedPath);
+            }
+
+            if (str_starts_with($normalizedPath, 'hero/') || str_starts_with($normalizedPath, 'images/')) {
+                return asset($normalizedPath);
+            }
+
+            return asset('storage/'.$normalizedPath);
         };
 
         $images = collect($candidateImages)->map(fn ($img) => $normalizeImage((string) $img))->unique()->values();
@@ -730,7 +746,29 @@
         $description = trim((string) ($tour->description ?? $tour->summary ?? 'No description available yet.'));
         $title = $tour->title ?? $tour->name ?? 'Tour Details';
         $overviewDuration = $tour->duration_label ?? ($tour->duration_hours ? $tour->duration_hours.' hours' : null) ?? 'Flexible';
-        $overviewTravelMode = $tour->travel_mode ?? 'Walking';
+
+        $activityTypes = collect([
+            $tour->category ?? null,
+            $tour->activities ?? null,
+            $tour->travel_mode ?? null,
+        ])
+            ->filter(fn (mixed $value): bool => is_string($value) && trim($value) !== '')
+            ->flatMap(function (string $value): array {
+                return preg_split('/\s*,\s*/', trim($value)) ?: [];
+            })
+            ->map(fn (string $value): string => trim($value))
+            ->filter(fn (string $value): bool => $value !== '')
+            ->unique()
+            ->values();
+
+        $languagesSpoken = collect((array) data_get($tour->pricing_tiers ?? [], 'languages_spoken', []))
+            ->map(fn (mixed $value): string => trim((string) $value))
+            ->filter(fn (string $value): bool => $value !== '')
+            ->unique()
+            ->values();
+
+        $overviewTravelMode = $activityTypes->isNotEmpty() ? $activityTypes->implode(', ') : 'Walking';
+        $overviewLanguages = $languagesSpoken->isNotEmpty() ? $languagesSpoken->implode(', ') : 'Not specified';
         $overviewFlexibility = $tour->max_guests ? $tour->max_guests.' pax' : 'Flexible';
 
         $availabilityDates = collect($availabilityOptions ?? [])
@@ -828,9 +866,9 @@
                 </div>
             <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($errors instanceof \Illuminate\Support\ViewErrorBag && $errors->any()): ?>
+            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(is_object($errors) && method_exists($errors, 'any') && $errors->any()): ?>
                 <div style="margin-bottom: 16px; border: 1px solid rgba(183, 80, 91, 0.35); background: #fff0f2; color: #7f2734; border-radius: 14px; padding: 12px 14px; font-size: 14px;">
-                    <?php echo e($errors->first()); ?>
+                    <?php echo e(method_exists($errors, 'first') ? $errors->first() : ''); ?>
 
                 </div>
             <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
@@ -902,6 +940,10 @@
                             <div class="overview-fact">
                                 <i class="fa-solid fa-person-walking"></i>
                                 <span><?php echo e($overviewTravelMode); ?></span>
+                            </div>
+                            <div class="overview-fact">
+                                <i class="fa-solid fa-language"></i>
+                                <span><?php echo e($overviewLanguages); ?></span>
                             </div>
                             <div class="overview-fact">
                                 <i class="fa-solid fa-user-group"></i>

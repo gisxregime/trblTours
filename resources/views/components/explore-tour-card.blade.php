@@ -13,16 +13,63 @@
 ])
 
 @php
-    $finalImageUrl = $imageUrl ?? $tour->image_url ?? $tour->featured_image ?? asset('hero/palawan.jpg');
+    $resolveImageUrl = function (mixed $path): ?string {
+        if (! is_string($path) || trim($path) === '') {
+            return null;
+        }
+
+        $normalizedPath = ltrim(trim($path), '/');
+
+        if (str_starts_with($normalizedPath, 'http://') || str_starts_with($normalizedPath, 'https://') || str_starts_with($normalizedPath, 'data:image/')) {
+            return $normalizedPath;
+        }
+
+        if (str_starts_with($normalizedPath, 'storage/')) {
+            return asset($normalizedPath);
+        }
+
+        if (str_starts_with($normalizedPath, 'hero/') || str_starts_with($normalizedPath, 'images/')) {
+            return asset($normalizedPath);
+        }
+
+        return asset('storage/'.$normalizedPath);
+    };
+
+    $finalImageUrl = collect([
+        $imageUrl,
+        $tour->image_url ?? null,
+        $tour->featured_image ?? null,
+        $tour->image_path ?? null,
+        ...((array) ($tour->gallery_images ?? [])),
+    ])
+        ->map(fn (mixed $path): ?string => $resolveImageUrl($path))
+        ->filter(fn (mixed $url): bool => is_string($url) && $url !== '')
+        ->first() ?? asset('hero/palawan.jpg');
+
     $finalGuideName = $guideName ?? $tour->marketplaceGuide->name ?? $tour->marketplaceGuide->full_name ?? 'Verified Guide';
-    $finalGuideAvatar = $guideAvatar ?? $tour->marketplaceGuide->avatar ?? 'https://ui-avatars.com/api/?name='.urlencode($finalGuideName).'&background=f5e8cc&color=3f2d22';
+    $finalGuideAvatar = $guideAvatar
+        ?? ($tour->marketplaceGuide?->profile_photo_path ? asset('storage/'.$tour->marketplaceGuide->profile_photo_path) : null)
+        ?? $tour->marketplaceGuide?->avatar
+        ?? 'https://ui-avatars.com/api/?name='.urlencode($finalGuideName).'&background=f5e8cc&color=3f2d22';
+
     $finalTitle = $title ?? $tour->title ?? $tour->name;
     $finalRegion = (string) ($tour->region ?? '');
     $finalSummary = (string) ($tour->summary ?? $tour->description ?? '');
-    $finalDuration = $duration ?? $tour->duration_label ?? ($tour->duration_hours ? $tour->duration_hours . ' hours' : null) ?? 'Flexible';
+    $finalDuration = $duration ?? $tour->duration_label ?? ($tour->duration_hours ? $tour->duration_hours.' hours' : null) ?? 'Flexible';
     $finalPrice = $price ?? $tour->price ?? $tour->price_per_person ?? $tour->base_price ?? $tour->budget ?? 0;
     $finalRating = $rating ?? $tour->rating ?? '5.0';
-    $travelMode = $tour->travel_mode ?? 'Walking';
+
+    $travelMode = collect([
+        (string) ($tour->category ?? ''),
+        (string) ($tour->activities ?? ''),
+        (string) ($tour->travel_mode ?? ''),
+    ])
+        ->filter(fn (string $value): bool => trim($value) !== '')
+        ->flatMap(fn (string $value): array => preg_split('/\s*,\s*/', trim($value)) ?: [])
+        ->map(fn (string $value): string => trim($value))
+        ->filter(fn (string $value): bool => $value !== '')
+        ->first() ?? 'Walking';
+
     $groupLabel = $tour->max_guests ? $tour->max_guests.' pax' : 'Flexible';
     $sourceContext = in_array($context, ['home', 'explore', 'dashboard'], true) ? $context : 'explore';
     $isLikedByCurrentUser = (bool) ($isLiked ?? ($tour->liked_by_current_user ?? false));

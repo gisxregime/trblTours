@@ -587,8 +587,8 @@ if (isset($__slots)) unset($__slots);
                                 <div>
                                     <label class="mb-1 block text-xs font-semibold uppercase tracking-[0.08em] text-[#6b5a49]" for="listing_gallery_images">Gallery Photos *</label>
                                     <input x-ref="galleryImagesInput" id="listing_gallery_images" name="gallery_images[]" type="file" multiple accept="image/*" @change="updateGalleryImages($event)" class="sr-only" required>
-                                    <label for="listing_gallery_images" class="inline-flex cursor-pointer items-center rounded-lg bg-[#7a8730] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#697629]">Choose 1 to 4 gallery photos</label>
-                                    <p class="mt-2 text-[11px] text-[#7a6a58]" x-text="`${galleryImagePreviews.length} selected (minimum 3)`"></p>
+                                    <label for="listing_gallery_images" class="inline-flex cursor-pointer items-center rounded-lg bg-[#7a8730] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#697629]">Choose 1 to 5 gallery photos</label>
+                                    <p class="mt-2 text-[11px] text-[#7a6a58]" x-text="`${galleryImagePreviews.length} selected (minimum 1)`"></p>
 
                                     <div class="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3" x-show="galleryImagePreviews.length > 0" x-cloak>
                                         <template x-for="(previewUrl, index) in galleryImagePreviews" :key="`${previewUrl}-${index}`">
@@ -640,6 +640,22 @@ if (isset($__slots)) unset($__slots);
                                             </label>
                                         </template>
                                     </div>
+                                    <div class="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
+                                        <input
+                                            type="text"
+                                            x-model="customActivityTypeInput"
+                                            @keydown.enter.prevent="addCustomActivityType()"
+                                            placeholder="Add custom activity type"
+                                            class="w-full rounded-xl border border-[#deceb7] bg-white px-3 py-2 text-xs text-[#4f4134] focus:border-[#b9915f] focus:outline-none focus:ring-2 focus:ring-[#e8d6bc]"
+                                        >
+                                        <button
+                                            type="button"
+                                            @click="addCustomActivityType()"
+                                            class="inline-flex items-center justify-center rounded-xl border border-[#4f7740] bg-[#5f8a46] px-3 py-2 text-xs font-semibold text-[#f7fff4] transition hover:bg-[#4f7740]"
+                                        >
+                                            + Add More
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <div>
@@ -661,6 +677,22 @@ if (isset($__slots)) unset($__slots);
                                                 <span x-text="language"></span>
                                             </label>
                                         </template>
+                                    </div>
+                                    <div class="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
+                                        <input
+                                            type="text"
+                                            x-model="customLanguageInput"
+                                            @keydown.enter.prevent="addCustomLanguage()"
+                                            placeholder="Add custom language"
+                                            class="w-full rounded-xl border border-[#deceb7] bg-white px-3 py-2 text-xs text-[#4f4134] focus:border-[#b9915f] focus:outline-none focus:ring-2 focus:ring-[#e8d6bc]"
+                                        >
+                                        <button
+                                            type="button"
+                                            @click="addCustomLanguage()"
+                                            class="inline-flex items-center justify-center rounded-xl border border-[#4f7740] bg-[#5f8a46] px-3 py-2 text-xs font-semibold text-[#f7fff4] transition hover:bg-[#4f7740]"
+                                        >
+                                            + Add More
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -707,12 +739,28 @@ if (isset($__slots)) unset($__slots);
                                 <div>
                                     <p class="mb-2 text-xs font-semibold uppercase tracking-[0.08em] text-[#6b5a49]">What's Included</p>
                                     <div class="grid grid-cols-2 gap-2">
-                                        <template x-for="item in inclusionOptions" :key="item.value">
+                                        <template x-for="item in inclusionOptions" :key="item">
                                             <label class="inline-flex items-center gap-2 rounded-xl border border-[#d8c7a9] bg-white px-3 py-2 text-xs font-semibold text-[#5f4a36]">
-                                                <input type="checkbox" name="included[]" :value="item.label" x-model="listingForm.included" class="h-3.5 w-3.5 rounded border-[#bba88d] text-[#5f8a46] focus:ring-[#8fa866]">
-                                                <span x-text="item.label"></span>
+                                                <input type="checkbox" name="included[]" :value="item" x-model="listingForm.included" class="h-3.5 w-3.5 rounded border-[#bba88d] text-[#5f8a46] focus:ring-[#8fa866]">
+                                                <span x-text="item"></span>
                                             </label>
                                         </template>
+                                    </div>
+                                    <div class="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
+                                        <input
+                                            type="text"
+                                            x-model="customInclusionInput"
+                                            @keydown.enter.prevent="addCustomInclusion()"
+                                            placeholder="Add custom inclusion"
+                                            class="w-full rounded-xl border border-[#deceb7] bg-white px-3 py-2 text-xs text-[#4f4134] focus:border-[#b9915f] focus:outline-none focus:ring-2 focus:ring-[#e8d6bc]"
+                                        >
+                                        <button
+                                            type="button"
+                                            @click="addCustomInclusion()"
+                                            class="inline-flex items-center justify-center rounded-xl border border-[#4f7740] bg-[#5f8a46] px-3 py-2 text-xs font-semibold text-[#f7fff4] transition hover:bg-[#4f7740]"
+                                        >
+                                            + Add More
+                                        </button>
                                     </div>
                                 </div>
 
@@ -862,6 +910,18 @@ if (isset($__slots)) unset($__slots);
 
                                         <div class="grid gap-3 sm:grid-cols-2">
                                             <div>
+                                                <p class="text-xs font-semibold uppercase tracking-[0.08em] text-[#7f6b57]">Activity Type</p>
+                                                <p class="mt-1 text-xs text-[#6f5d52]" x-text="activityPreviewLabel()"></p>
+                                            </div>
+
+                                            <div>
+                                                <p class="text-xs font-semibold uppercase tracking-[0.08em] text-[#7f6b57]">Languages Spoken</p>
+                                                <p class="mt-1 text-xs text-[#6f5d52]" x-text="languagesPreviewLabel()"></p>
+                                            </div>
+                                        </div>
+
+                                        <div class="grid gap-3 sm:grid-cols-2">
+                                            <div>
                                                 <p class="text-xs font-semibold uppercase tracking-[0.08em] text-[#7f6b57]">What's Included</p>
                                                 <ul class="mt-1 space-y-1 text-xs text-[#6f5d52]">
                                                     <template x-for="item in includedPreviewItems()" :key="item">
@@ -911,17 +971,23 @@ if (isset($__slots)) unset($__slots);
                 cityOptions: config.cityOptions ?? [],
                 todayDate: new Date().toISOString().split('T')[0],
                 fallbackImage: <?php echo \Illuminate\Support\Js::from(asset('hero/palawan.jpg'))->toHtml() ?>,
+                defaultActivityTypeOptions: ['Walking', 'Hiking', 'Boat', 'Driving', 'Island Hopping', 'Cultural', 'Food Tour'],
                 activityTypeOptions: ['Walking', 'Hiking', 'Boat', 'Driving', 'Island Hopping', 'Cultural', 'Food Tour'],
+                defaultLanguageOptions: ['English', 'Filipino', 'Cebuano', 'Ilocano', 'Bicolano', 'Waray', 'Hiligaynon'],
                 languageOptions: ['English', 'Filipino', 'Cebuano', 'Ilocano', 'Bicolano', 'Waray', 'Hiligaynon'],
+                defaultInclusionOptions: ['Guide Fee', 'Boat Transfer', 'Entrance Fees', 'Snacks', 'Water', 'Photos', 'Safety Support'],
                 inclusionOptions: [
-                    { value: 'guide_fee', label: 'Guide Fee' },
-                    { value: 'boat_transfer', label: 'Boat Transfer' },
-                    { value: 'entrance_fees', label: 'Entrance Fees' },
-                    { value: 'snacks', label: 'Snacks' },
-                    { value: 'water', label: 'Water' },
-                    { value: 'photos', label: 'Photos' },
-                    { value: 'safety_support', label: 'Safety Support' },
+                    'Guide Fee',
+                    'Boat Transfer',
+                    'Entrance Fees',
+                    'Snacks',
+                    'Water',
+                    'Photos',
+                    'Safety Support',
                 ],
+                customActivityTypeInput: '',
+                customLanguageInput: '',
+                customInclusionInput: '',
                 listingForm: {
                     title: '',
                     region: '',
@@ -975,6 +1041,12 @@ if (isset($__slots)) unset($__slots);
                     this.coverImagePreview = '';
                     this.galleryImageFiles = [];
                     this.galleryImagePreviews = [];
+                    this.activityTypeOptions = [...this.defaultActivityTypeOptions];
+                    this.languageOptions = [...this.defaultLanguageOptions];
+                    this.inclusionOptions = [...this.defaultInclusionOptions];
+                    this.customActivityTypeInput = '';
+                    this.customLanguageInput = '';
+                    this.customInclusionInput = '';
 
                     this.listingForm = {
                         title: '',
@@ -1103,6 +1175,66 @@ if (isset($__slots)) unset($__slots);
                     this.$refs.galleryImagesInput.files = transfer.files;
                 },
 
+                addCustomInclusion() {
+                    const normalized = this.customInclusionInput.trim().replace(/\s+/g, ' ');
+
+                    if (normalized === '') {
+                        return;
+                    }
+
+                    const optionExists = this.inclusionOptions.some((item) => item.toLowerCase() === normalized.toLowerCase());
+                    if (!optionExists) {
+                        this.inclusionOptions.push(normalized);
+                    }
+
+                    const selectedExists = this.listingForm.included.some((item) => item.toLowerCase() === normalized.toLowerCase());
+                    if (!selectedExists) {
+                        this.listingForm.included.push(normalized);
+                    }
+
+                    this.customInclusionInput = '';
+                },
+
+                addCustomActivityType() {
+                    const normalized = this.customActivityTypeInput.trim().replace(/\s+/g, ' ');
+
+                    if (normalized === '') {
+                        return;
+                    }
+
+                    const optionExists = this.activityTypeOptions.some((item) => item.toLowerCase() === normalized.toLowerCase());
+                    if (!optionExists) {
+                        this.activityTypeOptions.push(normalized);
+                    }
+
+                    const selectedExists = this.listingForm.activityTypes.some((item) => item.toLowerCase() === normalized.toLowerCase());
+                    if (!selectedExists) {
+                        this.listingForm.activityTypes.push(normalized);
+                    }
+
+                    this.customActivityTypeInput = '';
+                },
+
+                addCustomLanguage() {
+                    const normalized = this.customLanguageInput.trim().replace(/\s+/g, ' ');
+
+                    if (normalized === '') {
+                        return;
+                    }
+
+                    const optionExists = this.languageOptions.some((item) => item.toLowerCase() === normalized.toLowerCase());
+                    if (!optionExists) {
+                        this.languageOptions.push(normalized);
+                    }
+
+                    const selectedExists = this.listingForm.languages.some((item) => item.toLowerCase() === normalized.toLowerCase());
+                    if (!selectedExists) {
+                        this.listingForm.languages.push(normalized);
+                    }
+
+                    this.customLanguageInput = '';
+                },
+
                 validationChecklist() {
                     return [
                         { label: 'Cover image is required', valid: this.coverImageFile !== null },
@@ -1111,7 +1243,7 @@ if (isset($__slots)) unset($__slots);
                         { label: 'Duration is required', valid: this.listingForm.durationLabel.trim() !== '' },
                         { label: 'Short description is required', valid: this.listingForm.shortDescription.trim() !== '' },
                         { label: 'Base price is required', valid: Number(this.listingForm.basePrice) > 0 },
-                        { label: 'At least 3 gallery photos', valid: this.galleryImageFiles.length >= 3 },
+                        { label: 'At least 1 gallery photo', valid: this.galleryImageFiles.length >= 1 },
                     ];
                 },
 
@@ -1172,6 +1304,22 @@ if (isset($__slots)) unset($__slots);
                     }
 
                     return this.listingForm.activityTypes[0];
+                },
+
+                activityPreviewLabel() {
+                    if (this.listingForm.activityTypes.length === 0) {
+                        return 'Not specified yet.';
+                    }
+
+                    return this.listingForm.activityTypes.join(', ');
+                },
+
+                languagesPreviewLabel() {
+                    if (this.listingForm.languages.length === 0) {
+                        return 'Not specified yet.';
+                    }
+
+                    return this.listingForm.languages.join(', ');
                 },
 
                 displayPrice() {

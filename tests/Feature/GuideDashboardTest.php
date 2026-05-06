@@ -207,7 +207,7 @@ it('shows only open and negotiating request posts in the guide request feed', fu
         ->assertDontSee('Inactive Request Card');
 });
 
-it('requires cover image and at least three gallery photos when publishing listing', function () {
+it('requires cover image and at least one gallery photo when publishing listing', function () {
     Storage::fake('public');
 
     $guide = User::factory()->create([
@@ -225,10 +225,6 @@ it('requires cover image and at least three gallery photos when publishing listi
             'max_guests' => 6,
             'base_price' => 3900,
             'price_type' => 'per_person',
-            'gallery_images' => [
-                UploadedFile::fake()->create('gallery-1.jpg', 120, 'image/jpeg'),
-                UploadedFile::fake()->create('gallery-2.jpg', 120, 'image/jpeg'),
-            ],
         ])
         ->assertSessionHasErrors([
             'cover_image',
@@ -259,11 +255,11 @@ it('publishes listing builder fields to the tour and keeps it out of featured to
             'guide_name' => 'Guide Publisher',
             'guide_bio' => 'Certified Local Guide',
             'duration_label' => 'Full-day',
-            'activity_types' => ['Boat', 'Island Hopping'],
+            'activity_types' => ['Boat', 'Island Hopping', 'Night Photography'],
             'difficulty' => 'Flexible',
             'min_guests' => 2,
             'max_guests' => 10,
-            'languages_spoken' => ['English', 'Filipino'],
+            'languages_spoken' => ['English', 'Filipino', 'Mandarin'],
             'base_price' => 3800,
             'price_type' => 'per_person',
             'overview_description' => 'Full-day guided island hopping with hidden lagoons and flexible swim stops.',
@@ -272,7 +268,7 @@ it('publishes listing builder fields to the tour and keeps it out of featured to
             'itinerary_stop_2' => 'Secret Beach',
             'itinerary_lunch' => 'Floating lunch stop',
             'itinerary_return' => 'El Nido Port Return',
-            'included' => ['Guide Fee', 'Boat Transfer', 'Water'],
+            'included' => ['Guide Fee', 'Boat Transfer', 'Water', 'Private Photographer'],
             'exclusions_text' => 'Personal expenses and optional activities.',
             'start_time' => '08:00',
             'end_time' => '17:00',
@@ -308,4 +304,48 @@ it('publishes listing builder fields to the tour and keeps it out of featured to
     if (Schema::hasColumn('tours', 'available_on')) {
         expect($tour?->available_on)->toBeNull();
     }
+
+    if (Schema::hasColumn('tours', 'inclusions')) {
+        expect((array) $tour?->inclusions)->toContain('Private Photographer');
+    }
+
+    if (Schema::hasColumn('tours', 'category')) {
+        expect((string) $tour?->category)->toContain('Night Photography');
+    }
+
+    if (Schema::hasColumn('tours', 'activities')) {
+        expect((string) $tour?->activities)->toContain('Night Photography');
+    }
+
+    if (Schema::hasColumn('tours', 'pricing_tiers')) {
+        expect((array) ($tour?->pricing_tiers['languages_spoken'] ?? []))->toContain('Mandarin');
+    }
+
+    if (Schema::hasColumn('tours', 'custom_inclusions')) {
+        expect((array) $tour?->custom_inclusions)->toContain('Private Photographer');
+    }
+
+    actingAs($guide)
+        ->get(route('tours.show', ['tour' => $tour, 'from' => 'dashboard']))
+        ->assertSuccessful()
+        ->assertSee('Night Photography')
+        ->assertSee('Mandarin')
+        ->assertSee('storage/guide/tour-cover')
+        ->assertSee('storage/guide/tour-gallery');
+
+    actingAs($guide)
+        ->get(route('dashboard.guide', ['tab' => 'listings']))
+        ->assertSuccessful()
+        ->assertSee('El Nido Lagoon Explorer');
+
+    $tourist = User::factory()->create([
+        'role' => 'tourist',
+        'status' => 'active',
+        'email_verified_at' => now(),
+    ]);
+
+    actingAs($tourist)
+        ->get(route('dashboard.tourist'))
+        ->assertSuccessful()
+        ->assertSee('El Nido Lagoon Explorer');
 });

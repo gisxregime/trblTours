@@ -178,7 +178,7 @@ class ExploreToursFeed extends Component
             ->when($this->sortBy === 'price_high_low', function ($query) {
                 $this->applyPriceSort($query, $this->availablePriceColumns(), 'desc');
             }, function ($query): void {
-                $query->latest();
+                $query->orderByDesc('id');
             })
             ->when(
                 in_array($this->sortBy, ['price_low_high', 'price_high_low'], true) && $availableSortPriceColumns->isNotEmpty(),

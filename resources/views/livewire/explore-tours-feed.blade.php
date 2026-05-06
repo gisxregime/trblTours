@@ -1,4 +1,4 @@
-<div>
+<div @if($context === 'dashboard') wire:poll.5s @endif>
     @if($showFilters)
         @php
             $filtersActionUrl = $context === 'dashboard'
